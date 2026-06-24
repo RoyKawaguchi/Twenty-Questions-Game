@@ -2,8 +2,15 @@ import uuid
 from datetime import datetime, timezone
 from flask import Blueprint, jsonify, request, current_app
 from app.database import db_wrapper
+from app.llm_service import evaluate_question, evaluate_guess  # Hook in live services
 
 game_bp = Blueprint("game", __name__, url_prefix="/api/game")
+
+def get_db_collection():
+    """Helper to ensure we safely access the collection only after db is initialized."""
+    if db_wrapper.db is None:
+        raise RuntimeError("Database connection has not been initialized yet.")
+    return db_wrapper.db.game_sessions
 
 @game_bp.route("/categories", methods=["GET"])
 def get_categories():
@@ -12,16 +19,13 @@ def get_categories():
 
 @game_bp.route("/start", methods=["POST"])
 def start_game():
-    """Initializes a brand-new zero-knowledge session."""
     try:
         data = request.get_json() or {}
         category = data.get("category")
         categories_dict = current_app.config.get("GAME_CATEGORIES", {})
 
         if not category or category not in categories_dict:
-            return jsonify({
-                "error": f"Invalid category. Choose from: {list(categories_dict.keys())}"
-            }), 400
+            return jsonify({"error": f"Invalid category. Choose from: {list(categories_dict.keys())}"}), 400
 
         import random
         words_list = categories_dict[category]["words"]
@@ -30,7 +34,6 @@ def start_game():
         game_id = str(uuid.uuid4())
         max_questions = current_app.config.get("DEFAULT_MAX_QUESTIONS", 20)
 
-        # Structure record matching our precise Schema Spec
         session_record = {
             "_id": game_id,
             "category": category,
@@ -40,12 +43,12 @@ def start_game():
             "game_stage": "PLAYING",
             "chat_history": [],
             "game_result": None,
-            "created_at": datetime.now(timezone.utc) # Backs TTL index
+            "created_at": datetime.now(timezone.utc)
         }
 
-        db_wrapper.db.game_sessions.insert_one(session_record)
+        # Safe dynamic access
+        get_db_collection().insert_one(session_record)
 
-        # Zero-knowledge: secret_answer is dropped from client response
         return jsonify({
             "game_id": game_id,
             "category": category,
@@ -54,11 +57,11 @@ def start_game():
         }), 201
 
     except Exception as e:
+        # It's helpful to log the exception context or e here for debugging
         return jsonify({"error": "Failed to create game session due to an internal server error."}), 500
 
 @game_bp.route("/question", methods=["POST"])
 def submit_question():
-    """Evaluates a gameplay question turn (Stubbed LLM)."""
     data = request.get_json() or {}
     game_id = data.get("game_id")
     question_text = data.get("question_text")
@@ -66,7 +69,7 @@ def submit_question():
     if not game_id or not question_text:
         return jsonify({"error": "Missing game_id or question_text."}), 400
 
-    game = db_wrapper.db.game_sessions.find_one({"_id": game_id})
+    game = get_db_collection().find_one({"_id": game_id})
     if not game:
         return jsonify({"error": "Game session not found."}), 404
 
@@ -78,18 +81,18 @@ def submit_question():
             "game_stage": "FINAL_GUESS"
         }), 400
 
-    # STUBBED EVALUATION LAYER: Fake a 'Yes' response for testing
-    llm_response = "Yes" 
-    llm_analysis = "Stubbed response: assuming positive matching attributes."
+    # Execute dynamic live evaluation using our verbatim rules
+    evaluation = evaluate_question(game["category"], game["secret_answer"], question_text)
+    llm_response = evaluation["response"]   # "Yes" | "No" | "Error"
+    llm_analysis = evaluation["analysis"]
 
-    # Decision #2: 'Error' strings do NOT consume a turn
+    # Decision #2: 'Error' feedback loop results do NOT consume turns
     turn_increment = 1 if llm_response in ["Yes", "No"] else 0
     new_turns = game["turns_used"] + turn_increment
 
-    # Move to final guess if questions are exhausted
     new_stage = "FINAL_GUESS" if new_turns >= game["max_questions"] else "PLAYING"
 
-    db_wrapper.db.game_sessions.update_one(
+    get_db_collection().update_one(
         {"_id": game_id},
         {
             "$set": {"turns_used": new_turns, "game_stage": new_stage},
@@ -113,35 +116,32 @@ def submit_question():
 
 @game_bp.route("/guess", methods=["POST"])
 def submit_guess():
-    """Evaluates a word guess attempt (Stubbed LLM)."""
     data = request.get_json() or {}
     game_id = data.get("game_id")
-    guess_text = (data.get("guess_text") or "").strip().lower()
+    guess_text = data.get("guess_text", "").strip()
 
     if not game_id or not guess_text:
         return jsonify({"error": "Missing game_id or guess_text."}), 400
 
-    game = db_wrapper.db.game_sessions.find_one({"_id": game_id})
+    game = get_db_collection().find_one({"_id": game_id})
     if not game:
         return jsonify({"error": "Game session not found."}), 404
 
     if game["game_stage"] == "GAME_OVER":
         return jsonify({"error": "Game is already over."}), 400
 
-    secret_answer = game["secret_answer"].strip().lower()
-    
-    # STUBBED EVALUATION LAYER: Exact string matching for stub phase
-    is_correct = (guess_text == secret_answer)
+    # Call semantic match evaluator
+    evaluation = evaluate_guess(guess_text, game["secret_answer"])
+    is_correct = (evaluation["response"] == "yes")
 
     # Guesses always consume a turn
-    new_turns = game["turns_used"] + 1 
+    new_turns = game["turns_used"] + 1
     
     if is_correct:
         game_stage = "GAME_OVER"
         game_result = "WIN"
         response_text = "Correct"
     else:
-        # Out of turns conditions
         if new_turns >= game["max_questions"] or game["game_stage"] == "FINAL_GUESS":
             game_stage = "GAME_OVER"
             game_result = "LOSE"
@@ -151,22 +151,19 @@ def submit_guess():
             game_result = None
             response_text = "Incorrect"
 
-    update_payload = {
-        "turns_used": new_turns,
-        "game_stage": game_stage,
-        "game_result": game_result
-    }
-
-    history_item = {
-        "type": "guess",
-        "text": guess_text,
-        "response": response_text,
-        "analysis": f"Stubbed comparison between '{guess_text}' and target secret answer."
-    }
-
-    db_wrapper.db.game_sessions.update_one(
+    get_db_collection().update_one(
         {"_id": game_id},
-        {"$set": update_payload, "$push": {"chat_history": history_item}}
+        {
+            "$set": {"turns_used": new_turns, "game_stage": game_stage, "game_result": game_result},
+            "$push": {
+                "chat_history": {
+                    "type": "guess",
+                    "text": guess_text,
+                    "response": response_text,
+                    "analysis": evaluation["analysis"]
+                }
+            }
+        }
     )
 
     response_json = {
@@ -177,7 +174,6 @@ def submit_guess():
         "turns_used": new_turns
     }
 
-    # Only release secret_answer if game_stage is officially over
     if game_stage == "GAME_OVER":
         response_json["secret_answer"] = game["secret_answer"]
 
@@ -185,8 +181,7 @@ def submit_guess():
 
 @game_bp.route("/<game_id>/analysis", methods=["GET"])
 def get_game_analysis(game_id):
-    """Fetches AI reasoning history once match completely concludes."""
-    game = db_wrapper.db.game_sessions.find_one({"_id": game_id})
+    game = get_db_collection().find_one({"_id": game_id})
     if not game:
         return jsonify({"error": "Game session not found"}), 404
 
