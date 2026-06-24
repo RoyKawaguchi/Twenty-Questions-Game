@@ -1,17 +1,17 @@
+import json
+import os
 from flask import Flask, jsonify
 from flask_cors import CORS
-from dotenv import load_dotenv
-
-import os
 
 from app.config import Config
-from app.database import db_wrapper  
+from app.database import db_wrapper
 
 def create_app():
     base_dir = os.path.abspath(os.path.dirname(os.path.dirname(__file__)))
     env_path = os.path.join(base_dir, ".env")
     
     if os.path.exists(env_path):
+        from dotenv import load_dotenv
         load_dotenv(env_path)
 
     app = Flask(__name__)
@@ -20,10 +20,19 @@ def create_app():
     config_obj.validate()
     app.config.from_object(config_obj)
 
-    CORS(app, resources={r"/*": {"origins": "*"}})
+    # Load and map configuration dataset dynamically
+    json_config_path = os.path.join(os.path.dirname(__file__), "config.json")
+    with open(json_config_path, "r") as f:
+        game_data = json.load(f)
+        app.config["GAME_CATEGORIES"] = game_data["categories"]
+        app.config["DEFAULT_MAX_QUESTIONS"] = game_data.get("max_questions", 20)
 
-    # Initializing DB connection pool
+    CORS(app, resources={r"/*": {"origins": "*"}})
     db_wrapper.init_app(app)
+
+    # Import and register game engine blueprints here dynamically
+    from app.routes import game_bp
+    app.register_blueprint(game_bp)
 
     @app.route("/health", methods=["GET"])
     def health_check():
