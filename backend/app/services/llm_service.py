@@ -2,6 +2,7 @@ import json
 import logging
 from openai import OpenAI
 from flask import current_app
+from models import EvaluationResponse
 
 logger = logging.getLogger(__name__)
 
@@ -17,19 +18,19 @@ def evaluate_question(category: str, secret_answer: str, question: str) -> dict:
     system_prompt = (
         "Instructions:\n"
         "You are playing a game of 20 Questions. Your job is to answer the user's question about a secret object accurately based on facts.\n\n"
-        "1. CRITICAL - Logical Evaluation: Before applying any other rule, check if the question contains a compound choice, list, or options (e.g., 'A or B', 'X or Y'). You MUST evaluate these using logical OR. If the secret topic matches ANY single one of the options provided, your final response MUST be 'Yes'. You are strictly forbidden from answering 'No' just because one of the options is false.\n\n"
+        "1. CRITICAL - Logical Evaluation: Before applying any other rule, check if the question contains a compound choice, list, or options (e.g., 'A or B', 'X or Y'). You MUST evaluate these using logical OR. If the secret topic matches ANY single one of the options provided, your final response MUST be 'yes'. You are strictly forbidden from answering 'no' just because one of the options is false.\n\n"
         "2. Think step-by-step: Briefly analyze the secret topic's physical properties, geography, characteristics, or real-world traits relevant to the question so that your answer is logically consistent and does not contradict common sense.\n\n"
         "3. Base your answer on majority facts:\n"
         "   - If the secret topic is a specific person or unique entity, answer based on absolute factual accuracy.\n"
-        "   - If the topic represents a category or class, answer 'Yes' if more than 50% of instances satisfy the condition, and 'No' if they do not.\n"
+        "   - If the topic represents a category or class, answer 'yes' if more than 50% of instances satisfy the condition, and 'no' if they do not.\n"
         "   - For location questions (e.g., 'found at home'), evaluate if the place is a standard, expected storage or usage point, even if the object is mobile.\n\n"
         "4. Roles and Professions: When the topic is a profession, role, or job, base your answer on the typical day-to-day execution of that role, not on its training requirements, educational pathway, history, origin, or related industries.\n\n"
-        "5. Return 'Error' only when:\n"
+        "5. Return 'error' only when:\n"
         "   - The user's input is unrelated to the game, nonsensical, unintelligible, or gibberish.\n"
-        "   - The question is too ambiguous, context-dependent, or evenly split to justify a clear majority 'Yes' or 'No' answer.\n"
-        "Do not return 'Error' merely because the question is difficult.\n\n"
+        "   - The question is too ambiguous, context-dependent, or evenly split to justify a clear majority 'yes' or 'no' answer.\n"
+        "Do not return 'error' merely because the question is difficult.\n\n"
         "6. Format your output strictly as a single-line JSON object with exactly two keys:\n"
-        "{\"analysis\":\"Brief reasoning here\",\"response\":\"Yes|No|Error\"}"
+        "{\"analysis\":\"Brief reasoning here\",\"response\":\"yes|no|error\"}"
     )
 
     user_content = f"Category: {category}\nSecret Object: {secret_answer}\nPlayer's Question: {question}"
@@ -47,18 +48,24 @@ def evaluate_question(category: str, secret_answer: str, question: str) -> dict:
                 ]
             )
 
-            result_raw = completion.choices[0].message.content
-            parsed = json.loads(result_raw)
+            result = completion.choices[0].message.content
+            parsed = json.loads(result)
+
+            response_raw = str(parsed.get("response", "")).strip().lower()
+
+            try:
+                response_enum = EvaluationResponse(response_raw)
+            except ValueError:
+                response_enum = EvaluationResponse.ERROR
             
-            # Sanitize keys to guard against edge cases
             return {
                 "analysis": parsed.get("analysis", "No analysis provided."),
-                "response": parsed.get("response", "Error")
+                "response": response_enum
             }
         except Exception as e:
             logger.warning(f"Transient issue during question evaluation (Attempt {attempt + 1}): {e}")
             if attempt == 1:
-                return {"analysis": f"Failed evaluating question downstream: {str(e)}", "response": "Error"}
+                return {"analysis": f"Failed evaluating question downstream: {str(e)}", "response": EvaluationResponse.ERROR}
 
 def evaluate_guess(guess: str, answer: str) -> dict:
     """
@@ -96,13 +103,21 @@ def evaluate_guess(guess: str, answer: str) -> dict:
                 ]
             )
 
-            result_raw = completion.choices[0].message.content
-            parsed = json.loads(result_raw)
+            result = completion.choices[0].message.content
+            parsed = json.loads(result)
+
+            response_raw = str(parsed.get("response", "")).strip().lower()
+            
+            try:
+                response_enum = EvaluationResponse(response_raw)
+            except ValueError:
+                response_enum = EvaluationResponse.NO
+
             return {
                 "analysis": parsed.get("analysis", "No analysis provided."),
-                "response": parsed.get("response", "no").strip().lower()
+                "response": response_enum
             }
         except Exception as e:
             logger.warning(f"Transient issue during guess verification (Attempt {attempt + 1}): {e}")
             if attempt == 1:
-                return {"analysis": f"Failed evaluating guess downstream: {str(e)}", "response": "no"}
+                return {"analysis": f"Failed evaluating guess downstream: {str(e)}", "response": EvaluationResponse.NO}

@@ -7,11 +7,13 @@ from app.config import Config
 from app.database import db_wrapper
 
 def create_app():
+
+    # Load .env file located in the root
     base_dir = os.path.abspath(os.path.dirname(os.path.dirname(__file__)))
     env_path = os.path.join(base_dir, ".env")
     
+    from dotenv import load_dotenv
     if os.path.exists(env_path):
-        from dotenv import load_dotenv
         load_dotenv(env_path)
 
     app = Flask(__name__)

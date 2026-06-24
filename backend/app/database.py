@@ -18,8 +18,8 @@ class Database:
             # Setup standard connection pooling
             self.client = MongoClient(mongo_uri, serverSelectionTimeoutMS=5000)
             
-            # Extract database name from URI or default to 'ai20questions'
-            db_name = mongo_uri.split("/")[-1] if "/" in mongo_uri.split("//")[-1] else "ai20questions"
+            # Extract database name from URI or default to '20questionsgame'
+            db_name = mongo_uri.split("/")[-1] if "/" in mongo_uri.split("//")[-1] else "20questionsgame"
             if "?" in db_name:
                 db_name = db_name.split("?")[0]
                 
