@@ -1,0 +1,16 @@
+# Python / Flask
+backend/.venv/
+backend/__pycache__/
+backend/.env
+*.pyc
+
+# Android
+android_client/.gradle/
+android_client/build/
+android_client/local.properties
+android_client/.idea/workspace.xml
+android_client/*.iml
+
+# OS specific
+.DS_Store
+Thumbs.db
