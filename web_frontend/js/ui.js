@@ -30,7 +30,7 @@ export function renderCategoryButtons(categories, onSelectCategory) {
         const button = document.createElement("button");
         button.className = "btn btn-secondary category-btn";
         button.textContent = category.replace("_", " ").toUpperCase();
-        // Bug #1 Fix: Event listener is bound directly to newly drawn elements inline
+        
         button.addEventListener("click", () => onSelectCategory(category));
         elements.categoryGrid.appendChild(button);
     });

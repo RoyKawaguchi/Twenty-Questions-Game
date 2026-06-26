@@ -1,0 +1,21 @@
+0. Login/guest
+
+1. Choice between singleplayer, multiplayer
+
+2.1. Single player 
+DONE
+
+2.2 Multiplayer
+
+CREATE ROOM (button) -> generate and show code -> once player joins, START (button)
+JOIN ROOM ["enter code"]["nickname"] (if guest) JOIN (button)
+
+2.2.1 Choose category
+
+Host chooses category. Or random.
+
+
+SCORING
+Multiplayer
+
+Singleplayer
