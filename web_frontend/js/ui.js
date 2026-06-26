@@ -59,11 +59,10 @@ export function appendMessageBubble(senderType, messageText) {
     const bubble = document.createElement("div");
     bubble.classList.add("chat-bubble");
 
-    // Bug #2 Fix: Exact string token validation checks for target typography styles
     if (senderType === "USER_QUESTION") {
         bubble.classList.add("user-q");
     } else if (senderType === "USER_GUESS") {
-        bubble.classList.add("user-g"); // Accent-bordered highlight applied correctly
+        bubble.classList.add("user-g");
     } else if (senderType === "AI") {
         bubble.classList.add("ai-a");
         bubble.setAttribute("data-ai-index", aiMessageCounter);
@@ -83,19 +82,20 @@ export function setInputsEnabled(enabled) {
     inputsAndButtons.forEach(el => {
         if (el) el.disabled = !enabled;
     });
+    elements.questionInput.focus();
 }
 
-export function handleGameOverUI(result, secretAnswer) {
+export function handleGameOverUI(result, secretAnswer, turnsUsed) {
     elements.inputSection.classList.add("hidden");
     elements.gameOverPanel.classList.remove("hidden");
     elements.analysisToggle.checked = false;
 
     if (result === "WIN") {
         elements.endStatusHeading.textContent = "🎉 Victory!";
-        elements.endMessageText.textContent = "Magnificent! You deduced the correct item before expiration.";
+        elements.endMessageText.textContent = `Amazing! You deduced the correct item in ${turnsUsed}.`;
     } else {
         elements.endStatusHeading.textContent = "😔 Defeat!";
-        elements.endMessageText.textContent = "You ran out of structural attempts. Better luck next game!";
+        elements.endMessageText.textContent = "You ran out of attempts. Better luck next game!";
     }
 
     if (secretAnswer) {
@@ -107,13 +107,13 @@ export function handleGameOverUI(result, secretAnswer) {
 }
 
 export function injectReasoningBoxes(history) {
-    let aiIndex = 0;
+    let aiIndex = 1;    // The first message has no analysis
     history.forEach(turn => {
         const targetBubble = elements.chatDisplay.querySelector(`[data-ai-index="${aiIndex}"]`);
         if (targetBubble) {
             const thoughtBox = document.createElement("div");
             thoughtBox.className = "ai-thought-box";
-            thoughtBox.innerHTML = `<strong>Reasoning Log:</strong><br>${turn.analysis}`;
+            thoughtBox.innerHTML = `<strong>Explanation:</strong><br>${turn.analysis}`;
             targetBubble.appendChild(thoughtBox);
         }
         aiIndex++;
@@ -123,4 +123,8 @@ export function injectReasoningBoxes(history) {
 export function clearReasoningBoxes() {
     const boxes = elements.chatDisplay.querySelectorAll(".ai-thought-box");
     boxes.forEach(box => box.remove());
+}
+
+export function switchToFinalGuess() {
+    // TODO: disable guess input
 }

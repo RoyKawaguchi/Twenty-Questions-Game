@@ -10,8 +10,8 @@
         "words": ["japan","brazil","egypt","canada","australia","madagascar","iceland","switzerland","india","mexico","usa","uk","france","germany","china","italy","spain","argentina","russia","south korea","south africa","new zealand","norway","thailand","morocco","greece","vietnam","kenya","peru","turkey","ireland","costa rica","mongolia","indonesia","fiji","netherlands","sweden","portugal","colombia","chile","saudi arabia","nigeria","singapore","malaysia","philippines","ukraine","poland","austria","belgium","denmark","finland","cuba","jamaica","panama","croatia","pakistan","iran","nepal","ghana"]
       },
       "football_players": {
-        "example_question": "Has this player won a Ballon d'Or?",
-        "words": ["lionel messi","cristiano ronaldo","pelé","diego maradona","zinedine zidane","ronaldinho","johan cruyff","ronaldo nazário","kylian mbappé","erling haaland","neymar jr","luka modrić","kevin de bruyne","mohamed salah","karim benzema","robert lewandowski","harry kane","thierry henry","david beckham","zlatan ibrahimović","andrés iniesta","xavi hernández","paolo maldini","gianluigi buffon","franz beckenbauer","michel platini","george best","bobby charlton","gerd müller","ronald koeman"]
+        "example_question": "Has this player won the Ballon d'Or?",
+        "words": ["lionel messi","cristiano ronaldo","pelé","diego maradona","johan cruyff","franz beckenbauer","zinedine zidane","ronaldinho","ronaldo nazário","michel platini","george best","bobby charlton","gerd müller","paolo maldini","andrés iniesta","xavi hernández","thierry henry","luka modrić","gianluigi buffon","robert lewandowski","neymar jr","kylian mbappé","erling haaland","kevin de bruyne","mohamed salah","karim benzema","harry kane","david beckham","zlatan ibrahimović","ronald koeman","eusébio","alfredo di stéfano","ferenc puskás","lev yashin","marco van basten","ruud gullit","franco baresi","giuseppe meazza","roberto baggio","lothar matthäus","rivaldo","romário","cafu","carlos alberto torres","sócrates","daniel passarella","sergio ramos","manuel neuer","virgil van dijk","wayne rooney"]
       },
       "professions": {
         "example_question": "Does this job typically require wearing a uniform or specialized gear?",
@@ -26,4 +26,4 @@
         "words": ["smartphone","laptop","keys","wallet","umbrella","toothbrush","backpack","eyeglasses","watch","shoes","pillow","blanket","mug","mirror","scissors","pen","book","headphones","remote control","clock","hammer","flashlight","towel","water bottle","calculator","guitar","bicycle","chair","lamp","comb"]
       }
     }
-  }
+}

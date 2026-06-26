@@ -20,7 +20,12 @@ def create_app():
     
     config_obj = Config()
     config_obj.validate()
-    app.config.from_object(config_obj)
+    
+    app.config.update(
+        MONGO_URI=config_obj.MONGO_URI,
+        OPENAI_API_KEY=config_obj.OPENAI_API_KEY,
+        FLASK_ENV=config_obj.FLASK_ENV
+    )
 
     # Load and map configuration dataset dynamically
     json_config_path = os.path.join(os.path.dirname(__file__), "config.json")

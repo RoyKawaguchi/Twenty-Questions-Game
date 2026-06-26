@@ -22,7 +22,7 @@ async function selectCategoryTrigger(category) {
 
         switchViewToMatch();
         updateMetaLabels();
-        appendMessageBubble("AI", "I am thinking of an item from this category. Begin asking questions!");
+        appendMessageBubble("AI", `I am thinking of an item in the following category: ${category}. Begin asking Yes or No questions!`);
     } catch (err) {
         alert("Could not spin up match context: " + err.message);
     }
@@ -36,7 +36,7 @@ elements.questionForm.addEventListener("submit", async (e) => {
 
     elements.questionInput.value = "";
     appendMessageBubble("USER_QUESTION", qText);
-    setInputsEnabled(false); // Phase 8 double-submit protection layer preview
+    setInputsEnabled(false);
 
     try {
         const result = await api.askQuestion(state.gameId, qText);
@@ -47,7 +47,7 @@ elements.questionForm.addEventListener("submit", async (e) => {
         appendMessageBubble("AI", result.response);
 
         if (state.gameStage === "FINAL_GUESS") {
-            appendMessageBubble("AI", "⚠️ Warning: You have hit your maximum questions threshold! You must attempt your final word choice now.");
+            appendMessageBubble("AI", "That's all for the Q&A's! Please enter your final guess now!");
         }
     } catch (err) {
         appendMessageBubble("AI", "Error: " + err.message);
@@ -75,7 +75,7 @@ elements.guessForm.addEventListener("submit", async (e) => {
         appendMessageBubble("AI", `Result validation returned: ${result.response}`);
 
         if (state.gameStage === "GAME_OVER") {
-            handleGameOverUI(result.game_result, result.secret_answer);
+            handleGameOverUI(result.game_result, result.secret_answer, state.turnsUsed);
         }
     } catch (err) {
         appendMessageBubble("AI", "Error: " + err.message);

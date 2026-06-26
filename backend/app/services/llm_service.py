@@ -2,7 +2,7 @@ import json
 import logging
 from openai import OpenAI
 from flask import current_app
-from models import EvaluationResponse
+from app.models import EvaluationResponse
 
 logger = logging.getLogger(__name__)
 
