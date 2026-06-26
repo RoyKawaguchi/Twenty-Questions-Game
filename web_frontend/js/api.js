@@ -1,6 +1,6 @@
 const BASE_URL = "http://127.0.0.1:8080/api/game";
 
-// This function fetches the list of available categories from the backend API.
+// This function fetches the list of available categories from the backend API
 export async function fetchCategories() {
   const res = await fetch(`${BASE_URL}/categories`);
   if (!res.ok) throw new Error("Failed to load categories.");
