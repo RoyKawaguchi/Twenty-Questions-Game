@@ -8,14 +8,147 @@
 </head>
 <body>
     <div class="app-wrapper">
-        <header>
-            <h1>🎯 AI 20 Questions</h1>
-            <p class="subtitle">Can you beat the AI before your questions run out?</p>
+        <header class="app-header">
+            <div class="header-brand">
+                <h1>::twenty</h1>
+            </div>
+            
+            <div class="profile-menu-container">
+                <button id="profile-menu-btn" class="profile-icon-btn" aria-label="Toggle Account Panel">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-user-circle">
+                        <circle cx="12" cy="12" r="10"/>
+                        <circle cx="12" cy="10" r="3"/>
+                        <path d="M7 20.662V19a2 2 0 0 1 2-2h6a2 2 0 0 1 2 2v1.662"/>
+                    </svg>
+                </button>
+        
+                <div id="profile-dropdown-panel" class="profile-dropdown hidden">
+                    <div class="dropdown-header">
+                        <h3 id="dropdown-username">Loading...</h3>
+                        <p id="dropdown-email" class="user-subtext">guest@twentyquestions.ai</p>
+                    </div>
+                    
+                    <hr class="dropdown-divider">
+                    
+                    <div class="dropdown-body">
+                        <div class="stat-row">
+                            <span class="stat-label">Current Tier:</span>
+                            <span class="stat-value tier-badge">Novice Detective</span>
+                        </div>
+                    </div>
+                    
+                    <hr class="dropdown-divider">
+                    
+                    <div class="dropdown-footer">
+                        <button id="signout-action-btn" class="btn btn-danger full-width">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-log-out">
+                                <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/>
+                                <polyline points="16 17 21 12 16 7"/>
+                                <line x1="21" x2="9" y1="12" y2="12"/>
+                            </svg>
+                            Sign Out
+                        </button>
+                    </div>
+                </div>
+            </div>
         </header>
 
-        <main id="setup-container" class="card">
-            <h2>Select a Category to Start</h2>
+        <main id="auth-container" class="card">
+            <h2>Hey there!</h2>
+            <p class="auth-subtitle">Sign in to track high scores, or play instantly as a guest!</p>
+            
+            <div class="auth-actions-row">
+                <button id="show-login-btn" class="btn btn-primary">Login</button>
+                <button id="show-signup-btn" class="btn btn-secondary">Sign Up</button>
+                <button id="show-guest-btn" class="btn btn-outline">Play as Guest</button>
+            </div>
+
+            <form id="login-form" class="auth-form hidden">
+                <div class="form-group">
+                    <label for="login-identity">Username or Email</label>
+                    <input type="text" id="login-identity" required placeholder="Enter username or email">
+                </div>
+                <div class="form-group">
+                    <label for="login-password">Password</label>
+                    <input type="password" id="login-password" required placeholder="••••••••">
+                </div>
+                <button type="submit" class="btn btn-primary full-width">Sign In</button>
+            </form>
+
+            <form id="signup-form" class="auth-form hidden">
+                <div class="form-group">
+                    <label for="signup-username">Username</label>
+                    <input type="text" id="signup-username" required placeholder="Pick a username">
+                </div>
+                <div class="form-group">
+                    <label for="signup-email">Email Address</label>
+                    <input type="email" id="signup-email" required placeholder="you@example.com">
+                </div>
+                <div class="form-group">
+                    <label for="signup-password">Password</label>
+                    <input type="password" id="signup-password" required placeholder="Create secure password">
+                </div>
+                <button type="submit" class="btn btn-secondary full-width">Create Account</button>
+            </form>
+
+            <form id="guest-form" class="auth-form hidden">
+                <div class="form-group">
+                    <label for="guest-nickname">Choose a Nickname (Optional)</label>
+                    <input type="text" id="guest-nickname" placeholder="e.g., Roy">
+                </div>
+                <button type="submit" class="btn btn-accent full-width">Enter Game Room</button>
+            </form>
+            
+            <div id="auth-error-message" class="auth-error hidden"></div>
+        </main>
+
+        <main id="dashboard-container" class="card hidden">
+            <h2>Main Menu</h2>
+            <p class="dashboard-subtitle">Select an option to begin</p>
+            <div class="menu-grid">
+                <button id="menu-singleplayer-btn" class="btn btn-primary menu-btn">Single Player</button>
+                <button id="menu-multiplayer-btn" class="btn btn-secondary menu-btn">Multiplayer</button>
+                <button id="menu-leaderboard-btn" class="btn btn-accent menu-btn">Leaderboard</button>
+                <button id="menu-profile-btn" class="btn btn-outline menu-btn">My Profile</button>
+            </div>
+        </main>
+
+        <main id="singleplayer-container" class="card hidden">
+            <div class="view-header">
+                <button class="btn-back" id="singleplayer-back-btn">← Back to Menu</button>
+                <h2>Select a Category to Start</h2>
+            </div>
             <div id="category-grid" class="category-grid"></div>
+        </main>
+
+        <main id="multiplayer-container" class="card hidden">
+            <div class="view-header">
+                <button class="btn-back" id="multiplayer-back-btn">← Back to Menu</button>
+                <h2>Multiplayer Lobby</h2>
+            </div>
+            <div class="placeholder-content">
+                <p>Multiplayer features coming soon! Challenge your friends in real-time match-ups.</p>
+            </div>
+        </main>
+
+        <main id="leaderboard-container" class="card hidden">
+            <div class="view-header">
+                <button class="btn-back" id="leaderboard-back-btn">← Back to Menu</button>
+                <h2>Global Leaderboards</h2>
+            </div>
+            <div class="placeholder-content">
+                <p>Leaderboard ranks are updating. Keep playing to secure your spot at the top!</p>
+            </div>
+        </main>
+
+        <main id="profile-container" class="card hidden">
+            <div class="view-header">
+                <button class="btn-back" id="profile-back-btn">← Back to Menu</button>
+                <h2>My Player Profile</h2>
+            </div>
+            <div class="placeholder-content">
+                <p>Manage your account settings, tier stats, and game analytics history here.</p>
+            </div>
         </main>
 
         <main id="game-container" class="card hidden">

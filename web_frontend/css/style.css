@@ -29,6 +29,7 @@ body {
     padding: 20px;
 }
 
+
 .app-wrapper {
     width: 100%;
     max-width: 650px;
@@ -37,14 +38,96 @@ body {
     gap: 20px;
 }
 
-header {
-    text-align: center;
-    margin-bottom: 10px;
+/* Layout Positioning Configuration for Top Navigation Bar */
+.app-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 1rem 2rem;
+    background-color: #1e1e24; /* Adjust to match your theme's dark/light canvas scheme */
+    border-bottom: 1px solid #2d2d38;
+    position: relative;
+    z-index: 100;
+}
+
+/* Container Wrapper relative configuration */
+.profile-menu-container {
+    position: relative;
+}
+
+/* Target Styling for Interactive Circular Profile Button Controls */
+.profile-icon-btn {
+    background: transparent;
+    border: none;
+    color: #e2e8f0;
+    cursor: pointer;
+    padding: 0.5rem;
+    border-radius: 50%;
+    transition: background 0.2s, color 0.2s;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.profile-icon-btn:hover {
+    background-color: #2d2d38;
+    color: #3b82f6;
+}
+
+/* Floating Card Layout Container Blueprint configuration */
+.profile-dropdown {
+    position: absolute;
+    right: 0;
+    top: calc(100% + 0.5rem);
+    width: 240px;
+    background-color: #1a1a1f;
+    border: 1px solid #2d2d38;
+    border-radius: 8px;
+    box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.5), 0 4px 6px -4px rgba(0, 0, 0, 0.5);
+    padding: 1rem;
+    display: flex;
+    flex-direction: column;
+    z-index: 101;
+}
+
+/* General Layout Utilities */
+.profile-dropdown.hidden {
+    display: none !important;
+}
+
+.user-subtext {
+    font-size: 0.8rem;
+    color: #a0aec0;
+    margin: 2px 0 0 0;
+}
+
+.dropdown-divider {
+    border: 0;
+    border-top: 1px solid #2d2d38;
+    margin: 0.75rem 0;
+}
+
+.stat-row {
+    display: flex;
+    justify-content: space-between;
+    font-size: 0.9rem;
+}
+
+.tier-badge {
+    color: #ecc94b; /* Gold accent color for ranks */
+    font-weight: bold;
+}
+
+.full-width {
+    width: 100%;
 }
 
 header h1 {
+    font-family: Georgia, 'Times New Roman', Times, serif;
+    color: #7888fc;
     font-size: 2.2rem;
-    font-weight: 800;
+    font-weight: 700;
+    letter-spacing: -0.02em;
     margin-bottom: 6px;
 }
 
@@ -92,6 +175,11 @@ header h1 {
 .btn-secondary { background-color: #475569; }
 .btn-secondary:hover:not(:disabled) { background-color: #64748b; }
 .btn:disabled { opacity: 0.5; cursor: not-allowed; }
+.btn-danger { background-color: rgb(180, 0, 0);}
+.btn-chosen { 
+    border: 1px solid var(--border-color);
+    border-color: yellow !important;
+}
 
 .full-width { width: 100%; }
 
@@ -344,4 +432,88 @@ input:checked + .slider:before {
 
 .slider.round:before {
     border-radius: 50%;
+}
+
+.auth-subtitle {
+    color: var(--text-muted);
+    font-size: 0.9rem;
+    margin-top: 4px;
+    margin-bottom: 20px;
+}
+
+/* Row wrapper organizing gateway state selectors */
+.auth-actions-row {
+    display: flex;
+    gap: 10px;
+    margin-bottom: 20px;
+}
+
+.auth-actions-row .btn {
+    flex: 1;
+    text-align: center;
+}
+
+/* Outline style token specifically for the Guest path */
+.btn-outline {
+    background-color: transparent;
+    border: 1px solid var(--border-color);
+}
+
+.btn-outline:hover:not(:disabled) {
+    background-color: #1e293b;
+    border-color: var(--text-muted);
+}
+
+/* Individual account state input container groupings */
+.auth-form {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+    margin-top: 10px;
+    animation: formFadeIn 0.2s ease-out;
+}
+
+@keyframes formFadeIn {
+    from { opacity: 0; transform: translateY(4px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+.form-group {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    text-align: left;
+}
+
+.form-group label {
+    font-size: 0.85rem;
+    font-weight: 600;
+    color: var(--text-main);
+}
+
+.form-group input {
+    background-color: #0f172a;
+    border: 1px solid var(--border-color);
+    border-radius: 8px;
+    padding: 12px;
+    color: var(--text-main);
+    font-size: 0.95rem;
+    width: 100%;
+}
+
+.form-group input:focus {
+    outline: 2px solid var(--primary);
+}
+
+/* Error feedback indicator text */
+.auth-error {
+    margin-top: 14px;
+    background-color: #7f1d1d;
+    border: 1px solid #f87171;
+    color: #fca5a5;
+    padding: 10px 14px;
+    border-radius: 8px;
+    font-size: 0.85rem;
+    font-weight: 500;
+    text-align: left;
 }

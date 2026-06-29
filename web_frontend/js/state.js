@@ -1,4 +1,8 @@
 export const state = {
+    token: localStorage.getItem("token") || null,
+    username: localStorage.getItem("username") || null,
+    isGuest: localStorage.getItem("isGuest") === "true",
+
     gameId: null,
     category: null,
     turnsUsed: 0,
