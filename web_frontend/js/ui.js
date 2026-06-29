@@ -2,7 +2,17 @@ import { state } from "./state.js";
 
 // DOM Caching elements
 export const elements = {
-    setupContainer: document.getElementById("setup-container"),
+    singleplayerContainer: document.getElementById("singleplayer-container"),
+    dashboardContainer: document.getElementById("dashboard-container"),
+    multiplayerContainer: document.getElementById("multiplayer-container"),
+    leaderboardContainer: document.getElementById("leaderboard-container"),
+    profileContainer: document.getElementById("profile-container"),
+    menuGrid: document.getElementById("menu-grid"),
+    menuSingleplayerBtn: document.getElementById("menu-singleplayer-btn"),
+    menuMultiplayerBtn: document.getElementById("menu-multiplayer-btn"),
+    menuLeaderboardBtn: document.getElementById("menu-leaderboard-btn"),
+    menuProfileBtn: document.getElementById("menu-profile-btn"),
+    
     gameContainer: document.getElementById("game-container"),
     categoryGrid: document.getElementById("category-grid"),
     categoryBadge: document.getElementById("category-badge"),
@@ -19,7 +29,22 @@ export const elements = {
     revealBox: document.getElementById("reveal-box"),
     secretWordDisplay: document.getElementById("secret-word-display"),
     analysisToggle: document.getElementById("analysis-toggle"),
-    restartBtn: document.getElementById("restart-btn")
+    restartBtn: document.getElementById("restart-btn"),
+
+    authContainer: document.getElementById("auth-container"),
+    showLoginBtn: document.getElementById("show-login-btn"),
+    showSignupBtn: document.getElementById("show-signup-btn"),
+    showGuestBtn: document.getElementById("show-guest-btn"),
+    loginForm: document.getElementById("login-form"),
+    signupForm: document.getElementById("signup-form"),
+    guestForm: document.getElementById("guest-form"),
+    authErrorMsg: document.getElementById("auth-error-message"),
+
+    profileMenuBtn: document.getElementById("profile-menu-btn"),
+    profileDropdownPanel: document.getElementById("profile-dropdown-panel"),
+    dropdownUsername: document.getElementById("dropdown-username"),
+    dropdownEmail: document.getElementById("dropdown-email"),
+    signoutActionBtn: document.getElementById("signout-action-btn")
 };
 
 let aiMessageCounter = 0;
@@ -37,17 +62,13 @@ export function renderCategoryButtons(categories, onSelectCategory) {
 }
 
 export function switchViewToMatch() {
-    elements.setupContainer.classList.add("hidden");
+    elements.profileMenuBtn.classList.remove("hidden");
+    elements.singleplayerContainer.classList.add("hidden");
     elements.gameContainer.classList.remove("hidden");
     elements.gameOverPanel.classList.add("hidden");
     elements.inputSection.classList.remove("hidden");
     elements.chatDisplay.innerHTML = "";
     aiMessageCounter = 0;
-}
-
-export function switchViewToSetup() {
-    elements.gameContainer.classList.add("hidden");
-    elements.setupContainer.classList.remove("hidden");
 }
 
 export function updateMetaLabels() {
@@ -126,5 +147,68 @@ export function clearReasoningBoxes() {
 }
 
 export function switchToFinalGuess() {
-    // TODO: disable guess input
+    // TODO: disable question input
+}
+
+export function switchViewToSetup() {
+    unselectAuthBtns();
+    elements.profileMenuBtn.classList.remove("hidden");
+    elements.gameContainer.classList.add("hidden");
+    elements.authContainer.classList.add("hidden"); // Ensure landing is hidden
+    elements.singleplayerContainer.classList.remove("hidden");
+}
+
+export function switchViewToAuth() {
+    elements.profileMenuBtn.classList.add("hidden");
+    elements.gameContainer.classList.add("hidden");
+    elements.singleplayerContainer.classList.add("hidden");
+    elements.authContainer.classList.remove("hidden");
+}
+
+export function activateAuthForm(activeFormElement) {
+    // Clear old errors and hide all forms
+    elements.profileMenuBtn.classList.add("hidden");
+    if (elements.authErrorMsg) {
+        elements.authErrorMsg.textContent = "";
+        elements.authErrorMsg.classList.add("hidden");
+    }
+    elements.loginForm.classList.add("hidden");
+    elements.signupForm.classList.add("hidden");
+    elements.guestForm.classList.add("hidden");
+    
+    // Unhide the targeted choice
+    activeFormElement.classList.remove("hidden");
+}
+
+export function showAuthError(message) {
+    if (elements.authErrorMsg) {
+        elements.authErrorMsg.textContent = message;
+        elements.authErrorMsg.classList.remove("hidden");
+    }
+}
+
+export function toggleProfileDropdown() {
+    elements.profileDropdownPanel.classList.toggle("hidden");
+}
+
+export function closeProfileDropdown() {
+    elements.profileDropdownPanel.classList.add("hidden");
+}
+
+export function renderProfileMenuDetails(username, isGuest) {
+    elements.dropdownUsername.textContent = username;
+    if (isGuest) {
+        elements.dropdownEmail.textContent = "Temporary Guest Account";
+        document.querySelector(".tier-badge").textContent = "Guest Speculator";
+    } else {
+        // Fallback default or truncate string if you don't store email on state yet
+        elements.dropdownEmail.textContent = `${username.toLowerCase()}@dummyemail.com`;
+        document.querySelector(".tier-badge").textContent = "Novice Detective";
+    }
+}
+
+export function unselectAuthBtns() {
+    elements.showLoginBtn.classList.remove("btn-chosen");
+    elements.showSignupBtn.classList.remove("btn-chosen");
+    elements.showGuestBtn.classList.remove("btn-chosen");
 }
