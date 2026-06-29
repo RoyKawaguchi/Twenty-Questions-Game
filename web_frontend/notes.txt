@@ -1,0 +1,5 @@
+Renamed #setup-container to #singleplayer-container: Since this houses your active category grid and game configuration, it maps perfectly to your requirement ("single player will show the current game mode").
+
+Added #dashboard-container: This is your new Main Menu featuring the 4 primary navigation buttons.
+
+Added Placeholder Sections: #multiplayer-container, #leaderboard-container, and #profile-container are all initialized with a clean .hidden class.

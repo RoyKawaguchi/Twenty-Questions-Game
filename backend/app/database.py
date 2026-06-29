@@ -18,16 +18,25 @@ class Database:
             # Setup standard connection pooling
             self.client = MongoClient(mongo_uri, serverSelectionTimeoutMS=5000)
             
-            # Extract database name from URI or default to '20questionsgame'
-            db_name = mongo_uri.split("/")[-1] if "/" in mongo_uri.split("//")[-1] else "20questionsgame"
-            if "?" in db_name:
-                db_name = db_name.split("?")[0]
+            # Extract the core path after the double-slash domain section
+            path_part = mongo_uri.split("//")[-1].split("/", 1)[-1] if "/" in mongo_uri.split("//")[-1] else ""
+            
+            # Remove any trailing query parameters (like ?appName=...)
+            if "?" in path_part:
+                path_part = path_part.split("?")[0]
+            
+            # Clean up trailing or leading slashes
+            db_name = path_part.strip("/")
+            
+            # Fallback to default if no explicit database name was provided in the URI string
+            if not db_name:
+                db_name = "20questionsgame"
                 
             self.db = self.client[db_name]
             
             # Verify the deployment is live by issuing a ping command
             self.client.admin.command('ping')
-            logger.info("✅ Successfully linked and authenticated with MongoDB instance.")
+            logger.info(f"✅ Successfully linked and authenticated with MongoDB database: '{db_name}'")
             
             # Establish TTL compilation on game_sessions collection
             self._ensure_ttl_indices()
@@ -37,7 +46,7 @@ class Database:
             raise e
 
     def _ensure_ttl_indices(self):
-        """Creates a background index that drops sessions after 24 hours."""
+        """Creates a background index that drops game sessions after 24 hours."""
         if self.db is not None:
             # 86400 seconds = 24 hours
             self.db.game_sessions.create_index(

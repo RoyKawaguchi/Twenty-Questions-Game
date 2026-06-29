@@ -1,6 +1,6 @@
 0. Login/guest
 
-1. Choice between singleplayer, multiplayer
+1. Choice between singleplayer, multiplayer, leaderboard, profile
 
 2.1. Single player 
 DONE
@@ -14,8 +14,13 @@ JOIN ROOM ["enter code"]["nickname"] (if guest) JOIN (button)
 
 Host chooses category. Or random.
 
+2.3 leaderboard
+
+
 
 SCORING
 Multiplayer
 
 Singleplayer
+
+XP = 21 - quetsion_count
