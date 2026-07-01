@@ -9,6 +9,7 @@ class GameStage(str, Enum):
     PLAYING = "PLAYING"
     FINAL_GUESS = "FINAL_GUESS"
     GAME_OVER = "GAME_OVER"
+    PAUSED = "PAUSED"
 
 class GameResult(str, Enum):
     WIN = "WIN"

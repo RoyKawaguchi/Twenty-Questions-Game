@@ -115,16 +115,41 @@
 
         <main id="singleplayer-container" class="card hidden">
             <div class="view-header">
-                <button class="btn-back" id="singleplayer-back-btn">← Back to Menu</button>
-                <h2>Select a Category to Start</h2>
+                <h3 id="singleplayer-view-title">Select a Category to Start</h3>
+                <button class="btn btn-primary btn-back" id="singleplayer-back-btn">← Back to Menu</button>
             </div>
-            <div id="category-grid" class="category-grid"></div>
-        </main>
+
+            <div id="category-selection-workspace">
+                <div id="category-grid" class="category-grid"></div>
+                <div class="launch-action-container">
+                    <button id="singleplayer-launch-btn" class="btn btn-primary launch-btn" disabled>
+                        Play Match
+                    </button>
+                </div>
+            </div>
+
+            <div id="active-investigation-portal" class="hidden">
+                <div class="portal-card">
+                    <div class="portal-badge">⚠️ ACTIVE DOSSIER OPEN</div>
+                    <p class="portal-desc">You are currently in the middle of a live investigation. You must resolve or forfeit this case before starting a new one.</p>
+                    
+                    <div class="portal-stats-box">
+                        <div>Category: <span id="portal-meta-category" style="font-weight:700; color:var(--text-main);">--</span></div>
+                        <div>Questions Asked: <span id="portal-meta-turns" style="font-weight:700; color:var(--text-main);">0/20</span></div>
+                    </div>
+
+                    <div class="portal-actions">
+                        <button id="portal-resume-btn" class="btn btn-accent full-width">Resume Investigation</button>
+                        <button id="portal-forfeit-btn" class="btn btn-outline btn-danger full-width" style="margin-top: 10px;">Forfeit Active Case</button>
+                    </div>
+                </div>
+            </div>
+        </main>        
 
         <main id="multiplayer-container" class="card hidden">
             <div class="view-header">
-                <button class="btn-back" id="multiplayer-back-btn">← Back to Menu</button>
                 <h2>Multiplayer Lobby</h2>
+                <button class="btn btn-primary btn-back" id="multiplayer-back-btn">← Back to Menu</button>
             </div>
             <div class="placeholder-content">
                 <p>Multiplayer features coming soon! Challenge your friends in real-time match-ups.</p>
@@ -133,8 +158,8 @@
 
         <main id="leaderboard-container" class="card hidden">
             <div class="view-header">
-                <button class="btn-back" id="leaderboard-back-btn">← Back to Menu</button>
                 <h2>Global Leaderboards</h2>
+                <button class="btn btn-primary btn-back" id="leaderboard-back-btn">← Back to Menu</button>
             </div>
             <div class="placeholder-content">
                 <p>Leaderboard ranks are updating. Keep playing to secure your spot at the top!</p>
@@ -143,11 +168,45 @@
 
         <main id="profile-container" class="card hidden">
             <div class="view-header">
-                <button class="btn-back" id="profile-back-btn">← Back to Menu</button>
-                <h2>My Player Profile</h2>
+                <h2>Player Profile</h2>
+                <button class="btn btn-primary btn-back" id="profile-back-btn">← Back to Menu</button>
+                
             </div>
-            <div class="placeholder-content">
-                <p>Manage your account settings, tier stats, and game analytics history here.</p>
+        
+            <div class="profile-hero">
+                <div class="profile-meta-block">
+                    <h3 id="profile-username-display" class="profile-name">---</h3>
+                    <span id="profile-xp-display" class="badge badge-xp">0 XP Total</span>
+                </div>
+                <div class="rank-badge-container">
+                    <span class="rank-label">Current Grade</span>
+                    <div id="profile-rank-badge" class="rank-circle rank-c">C</div>
+                    <span id="profile-rank-note" class="stat-card-note"></span>
+                </div>
+            </div>
+        
+            <div class="stats-dashboard-grid">
+                <div class="stat-card">
+                    <span class="stat-card-title">Avg Turns to Win</span>
+                    <div class="stat-card-value" id="stat-avg-turns">0.0</div>
+                </div>
+                <div class="stat-card">
+                    <span class="stat-card-title">Win Rate</span>
+                    <div class="stat-card-value" id="stat-win-rate">0%</div>
+                </div>
+            </div>
+        
+            <hr class="panel-divider">
+        
+            <div class="history-section">
+                <h3>Match History</h3>
+                <div class="history-tabs">
+                    <button class="tab-btn btn-chosen" id="tab-singleplayer-btn">Single Player</button>
+                    <button class="tab-btn" id="tab-multiplayer-btn" disabled>Multiplayer (Soon)</button>
+                </div>
+                <div id="profile-history-list" class="history-list">
+                    <p class="empty-history-text">No matches played yet. Go play some games!</p>
+                </div>
             </div>
         </main>
 
@@ -171,6 +230,11 @@
                     <input type="text" id="guess-input" placeholder="Guess the exact word..." required>
                     <button type="submit" class="btn btn-accent" id="guess-btn">Guess</button>
                 </form>
+
+                <div class="game-session-control-row">
+                    <button type="button" id="game-pause-btn" class="btn btn-secondary flex-btn">⏸ Save & Pause</button>
+                    <button type="button" id="game-abandon-btn" class="btn btn-outline btn-danger flex-btn">🏳 Forfeit Match</button>
+                </div>
             </div>
 
             <div id="game-over-panel" class="game-over-panel hidden">

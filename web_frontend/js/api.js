@@ -65,6 +65,20 @@ export async function initializeGuestSession(nickname) {
     return data;
 }
 
+export async function getUserInfo() {
+    const response = await fetch(`${AUTH_BASE_URL}/user_info`, {
+        method: "GET",
+        headers: getAuthenticatedHeaders()
+    });
+
+    if (!response.ok) {
+        const errorData = await response.json().catch(() => ({}));
+        throw new Error(errorData.error || "Failed to retrieve user info from pipeline.");
+    }
+
+    return await response.json(); 
+}
+
 // =====================================================================
 // CORE GAME PLAYPLAY API CALLS (SECURED VIA JWT BEARER TOKENS)
 // =====================================================================
@@ -122,7 +136,37 @@ export async function submitGuess(gameId, guessText) {
     
     const data = await res.json();
     if (!res.ok) throw new Error(data.error || "Failed to submit guess.");
-    return data; // Returns { game_id, game_stage, game_result, response, turns_used, [secret_answer] }
+    return data; // Returns { game_id, game_stage, game_result, response, turns_used, [secret_answer], final_message }
+}
+
+export async function pauseGame(gameId) {
+    const response = await fetch(`${GAME_BASE_URL}/pause`, {
+        method: "POST",
+        headers: getAuthenticatedHeaders(),
+        body: JSON.stringify({ game_id: gameId })
+    });
+
+    if (!response.ok) {
+        const errorData = await response.json().catch(() => ({}));
+        throw new Error(errorData.error || "Failed to hibernate the active match session.");
+    }
+
+    return await response.json(); // Returns { message, game_stage }
+}
+
+export async function quitGame(gameId) {
+    const response = await fetch(`${GAME_BASE_URL}/quit`, {
+        method: "POST",
+        headers: getAuthenticatedHeaders(),
+        body: JSON.stringify({ game_id: gameId })
+    });
+
+    if (!response.ok) {
+        const errorData = await response.json().catch(() => ({}));
+        throw new Error(errorData.error || "Failed to forfeit match session.");
+    }
+
+    return await response.json(); // Returns { message, game_stage, secret_answer }
 }
 
 export async function fetchAnalysis(gameId) {

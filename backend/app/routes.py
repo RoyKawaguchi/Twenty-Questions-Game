@@ -37,7 +37,7 @@ def token_required(f):
         # 1. Extract token from the Authorization header
         if 'Authorization' in request.headers:
             auth_header = request.headers['Authorization']
-            # Header typically looks like: "Bearer eyJhbGciOi..."
+            # Header should look like: "Bearer eyJhbGciOi..."
             if auth_header.startswith("Bearer "):
                 token = auth_header.split(" ")[1]
 
@@ -88,7 +88,8 @@ def signup():
         "email": email,
         "username": username,
         "password_hash": hashed_password,
-        "created_at": datetime.datetime.now(datetime.timezone.utc)
+        "created_at": datetime.datetime.now(datetime.timezone.utc),
+        "xp": 0
     }
 
     users_db.insert_one(user_doc)
@@ -97,7 +98,8 @@ def signup():
     return jsonify({
         "token": token,
         "username": username,
-        "is_guest": False
+        "is_guest": False,
+        "email": email
     }), 201
 
 @auth_bp.route('/login', methods=['POST'])
@@ -125,7 +127,8 @@ def login():
     return jsonify({
         "token": token,
         "username": user_doc["username"],
-        "is_guest": False
+        "is_guest": False,
+        "email": user_doc["email"] or ""
     }), 200
 
 
@@ -149,11 +152,118 @@ def guest_login():
     return jsonify({
         "token": token,
         "username": unique_guest_name,
-        "is_guest": True
+        "is_guest": True,
+        "email": ""
     }), 200
 
+@auth_bp.route("/user_info", methods=["GET"])
+@token_required
+def get_user_info(current_user):
+    """
+    Returns a comprehensive profile payload including profile analytics, 
+    rolling rank tiers, and chronological game histories.
+    """
+    try:
+        user_id = current_user["user_id"]
+        is_guest = current_user["is_guest"]
+
+        if is_guest:
+            # Guests don't exist in the database, return a clean blank slate state
+            return jsonify({
+                "username": current_user["username"],
+                "xp": 0,
+                "is_guest": True,
+                "rank": "-",
+                "avg_turns_to_win": 0.0,
+                "win_rate": 0,
+                "history_singleplayer": []
+            }), 200
+
+        user_doc = get_db_collection().users.find_one({"_id": user_id})
+        if not user_doc:
+            return jsonify({"error": "User account record not found."}), 404
+
+        history = user_doc.get("history_singleplayer", [])
+        
+        # TODO: Refine algorithm for RANKING
+        total_games = len(history)
+        wins = [game for game in history if game.get("result") == "WIN"]
+        total_wins = len(wins)
+        
+        # 1. Calculate Win Rate
+        win_rate = int((total_wins / total_games) * 100) if total_games > 0 else 0
+
+        # 2. Calculate Average Turns to Win (Rolling over up to the last 10 wins)
+        # Sort by played_at descending to grab the freshest achievements first
+        sorted_wins = sorted(wins, key=lambda x: x.get("played_at"), reverse=True)
+        recent_wins = sorted_wins[:10]
+        
+        if recent_wins:
+            avg_turns = round(sum(game["turns_used"] for game in recent_wins) / len(recent_wins), 1)
+        else:
+            avg_turns = 0.0
+
+        # 3. Grade the Performance Rank Tier
+        # S <= 7  |  A = 8-11  |  B = 12-15  |  C >= 16 (or 0 games)
+        if not recent_wins:
+            rank_tier = "C"
+        elif avg_turns <= 7.0:
+            rank_tier = "S"
+        elif avg_turns <= 11.0:
+            rank_tier = "A"
+        elif avg_turns <= 15.0:
+            rank_tier = "B"
+        else:
+            rank_tier = "C"
+
+        if total_games < 5:
+            rank_tier = "-"
+
+        # Sort the full history array chronologically for the frontend list layout view
+        # Fresh games at the top of the feed
+        sorted_full_history = sorted(history, key=lambda x: x.get("played_at"), reverse=True)
+
+        # Convert datetime objects into standard ISO strings for clean JSON serialization
+        for entry in sorted_full_history:
+            if isinstance(entry.get("played_at"), datetime.datetime):
+                entry["played_at"] = entry["played_at"].isoformat()
+        
+        # ─── ACTIVE FILE LOOKUP PIPELINE ───
+        active_match = get_db_collection().game_sessions.find_one({
+            "user_id": current_user["user_id"],
+            "game_mode": "SINGLEPLAYER",
+            "game_stage": "PAUSED"
+        })
+        
+        active_game_payload = None
+        if active_match:
+            active_game_payload = {
+                "game_id": active_match["_id"],
+                "category": active_match["category"],
+                "turns_used": active_match["turns_used"],
+                "max_questions": active_match["max_questions"],
+                # Return past messages so the client UI can re-render the scroll history!
+                "chat_history": active_match["chat_history"] 
+            }
+
+        return jsonify({
+            "username": user_doc["username"],
+            "xp": user_doc.get("xp", 0),
+            "is_guest": False,
+            "rank": rank_tier,
+            "avg_turns_to_win": avg_turns,
+            "win_rate": win_rate,
+            "history_singleplayer": sorted_full_history,
+            "active_game": active_game_payload
+        }), 200
+
+    except Exception as e:
+        # Avoid crashing completely if something fails internally during calculation
+        return jsonify({"error": "Internal server error fetching user information."}), 500
+
 @game_bp.route("/categories", methods=["GET"])
-def get_categories():
+@token_required
+def get_categories(current_user):
     """
     Returns a JSON object of the categories as strings.
     """
@@ -164,7 +274,7 @@ def get_categories():
 @token_required
 def start_game(current_user):
     """
-    Initializes the game by selecting secret_word at random, generating game_id 
+    Initializes the game by selecting secret_answer at random, generating game_id 
     and saving the session_record to DB linked to the current authenticated user.
     """
     try:
@@ -181,8 +291,28 @@ def start_game(current_user):
         except ValueError:
             return jsonify({"error": "Invalid game_mode. Choose SINGLEPLAYER or MULTIPLAYER"}), 400
 
+        # ─── ANTI-EXPLOIT CHECK: PREVENT PARALLEL ACTIVE MATCHES ───
+        if game_mode == GameMode.SINGLEPLAYER:
+            existing_paused_game = get_db_collection().game_sessions.find_one({
+                "user_id": current_user["user_id"],
+                "game_mode": GameMode.SINGLEPLAYER.value,
+                "game_stage": GameStage.PAUSED.value 
+            })
+            if existing_paused_game:
+                return jsonify({
+                    "error": "You have an unfinished game in progress. You must resume or forfeit it first.",
+                    "active_game_details": {
+                        "game_id": existing_paused_game["_id"],
+                        "category": existing_paused_game["category"],
+                        "turns_used": existing_paused_game["turns_used"]
+                    }
+                }), 409  # Conflict status code
+
         words_list = categories_dict[category]["words"]
-        secret_word = random.choice(words_list)
+        secret_answer = random.choice(words_list)
+
+        # TODO: delete this
+        print("Secret answer = ", secret_answer)
         
         game_id = str(uuid.uuid4())
         max_questions = current_app.config.get("DEFAULT_MAX_QUESTIONS", 20)
@@ -195,14 +325,14 @@ def start_game(current_user):
 
             "game_mode": game_mode.value,  # Saved as string
             "category": category,
-            "secret_answer": secret_word,
+            "secret_answer": secret_answer,
             "turns_used": 0,
             "error_count": 0,
             "max_questions": max_questions,
             "game_stage": GameStage.PLAYING.value,  # Saved as string
             "chat_history": [],
             "game_result": None,
-            "created_at": datetime.datetime.now(datetime.timezone.utc)
+            "created_at": datetime.datetime.now(datetime.timezone.utc),
         }
 
         get_db_collection().game_sessions.insert_one(session_record)
@@ -239,17 +369,24 @@ def submit_question(current_user):
         # ─── SECURITY CHECK: VERIFY SESSION OWNER ───
         if game["user_id"] != current_user["user_id"]:
             return jsonify({"error": "Unauthorized. You do not own this game session."}), 403
+    
+        current_stage = game["game_stage"]
+        if current_stage == GameStage.PAUSED.value:
+            current_stage = GameStage.PLAYING.value
+            get_db_collection().game_sessions.update_one(
+                {"_id": game_id},
+                {"$set": {"game_stage": GameStage.PLAYING.value}}
+            )
 
-        # DB returns plain strings, so we explicitly compare against the Enum string values
-        if game["game_stage"] == GameStage.GAME_OVER.value:
+        if current_stage == GameStage.GAME_OVER.value:
             return jsonify({"error": "Game is already over."}), 400
-        if game["game_stage"] == GameStage.FINAL_GUESS.value:
+            
+        if current_stage == GameStage.FINAL_GUESS.value:
             return jsonify({
                 "error": "You have exhausted your questions! You must make a final guess.",
                 "game_stage": GameStage.FINAL_GUESS.value
             }), 400
 
-        # Get LLM evaluation (returns an EvaluationResponse Enum object)
         evaluation = evaluate_question(game["category"], game["secret_answer"], question_text)
         llm_response = evaluation["response"]   
         llm_analysis = evaluation["analysis"]
@@ -261,7 +398,7 @@ def submit_question(current_user):
             new_turns = game["turns_used"]
             new_error_count = game["error_count"] + 1
 
-        # Decide new stage and extract its string value
+        # Determine the next game stage
         if new_turns >= game["max_questions"]:
             new_stage = GameStage.FINAL_GUESS.value
         else:
@@ -303,7 +440,8 @@ def submit_question(current_user):
 @token_required
 def submit_guess(current_user):
     """
-    Processes a guess made by the user, verifying session ownership via JWT. 
+    Processes a guess made by the user, verifying session ownership via JWT.
+    Appends singleplayer history entries directly into user profile upon game completion.
     """
     try:
         data = request.get_json() or {}
@@ -321,30 +459,62 @@ def submit_guess(current_user):
         if game["user_id"] != current_user["user_id"]:
             return jsonify({"error": "Unauthorized. You do not own this game session."}), 403
 
+        if game["game_stage"] == GameStage.PAUSED.value:
+            return jsonify({"error": "This match is currently paused. Please resume it first."}), 400
+
         if game["game_stage"] == GameStage.GAME_OVER.value:
             return jsonify({"error": "Game is already over."}), 400
 
-        # Get LLM evaluation (returns an EvaluationResponse Enum object)
+        # Get LLM evaluation
         evaluation = evaluate_guess(guess_text, game["secret_answer"])
         is_correct = (evaluation["response"] == EvaluationResponse.YES)
 
         new_turns = game["turns_used"] + 1
         
+        # Determine final win/loss state conditions
         if is_correct:
             new_game_stage = GameStage.GAME_OVER.value
             new_game_result = GameResult.WIN.value
-            response_text = f"{EvaluationResponse.CORRECT.value.capitalize()}!"  # "Correct!"
+            response_text = f"{EvaluationResponse.CORRECT.value.capitalize()}!"
         else:
-            # Match against string literal representation from DB
             if new_turns >= game["max_questions"] or game["game_stage"] == GameStage.FINAL_GUESS.value:
                 new_game_stage = GameStage.GAME_OVER.value
                 new_game_result = GameResult.LOSE.value
-                response_text = f"{EvaluationResponse.INCORRECT.value.capitalize()}."  # "Incorrect."
+                response_text = f"{EvaluationResponse.INCORRECT.value.capitalize()}."
             else:
                 new_game_stage = GameStage.PLAYING.value
                 new_game_result = None
-                response_text = f"{EvaluationResponse.INCORRECT.value.capitalize()}."  # "Incorrect."
+                response_text = f"{EvaluationResponse.INCORRECT.value.capitalize()}."
 
+
+
+        # ─── HISTORICAL DOCUMENTATION ENGINE ───
+        if new_game_stage == GameStage.GAME_OVER.value and not game.get("is_guest", False):
+            
+            # Calculate earned experience (Wins yield 21 - turns; Losses yield 0)
+            xp_earned = (21 - new_turns) if new_game_result == GameResult.WIN.value else 0
+            if xp_earned < 0: 
+                xp_earned = 0
+
+            # Build structural history payload
+            history_entry = {
+                "game_id": game_id,
+                "category": game["category"],
+                "result": new_game_result,  # "WIN" or "LOSE"
+                "turns_used": new_turns,
+                "xp_earned": xp_earned,
+                "played_at": datetime.datetime.now(datetime.timezone.utc)
+            }
+
+            # Atomically increment XP and push entry to array
+            get_db_collection().users.update_one(
+                {"_id": game["user_id"]},
+                {
+                    "$inc": {"xp": xp_earned},
+                    "$push": {"history_singleplayer": history_entry},
+                }
+            )
+        # ───────────────────────────────────────────
         get_db_collection().game_sessions.update_one(
             {"_id": game_id},
             {
@@ -379,6 +549,111 @@ def submit_guess(current_user):
 
     except Exception as e:
         return jsonify({"error": "Internal server error processing guess."}), 500
+    
+@game_bp.route("/pause", methods=["POST"])
+@token_required
+def pause_game(current_user):
+    """
+    Sets an ongoing game session's stage to PAUSED so it can be resumed later.
+    """
+    try:
+        data = request.get_json() or {}
+        game_id = data.get("game_id")
+
+        if not game_id:
+            return jsonify({"error": "Missing game_id."}), 400
+
+        game = get_db_collection().game_sessions.find_one({"_id": game_id})
+        if not game:
+            return jsonify({"error": "Game session not found."}), 404
+
+        # SECURITY CHECK: Verify session ownership
+        if game["user_id"] != current_user["user_id"]:
+            return jsonify({"error": "Unauthorized. You do not own this game session."}), 403
+
+        # State Protection: Can't pause a finished game
+        if game["game_stage"] == GameStage.GAME_OVER.value:
+            return jsonify({"error": "Cannot pause a game that is already over."}), 400
+
+        # Flip state stage flag safely
+        get_db_collection().game_sessions.update_one(
+            {"_id": game_id},
+            {"$set": {"game_stage": GameStage.PAUSED.value}}
+        )
+
+        return jsonify({
+            "message": "Game successfully hibernated.",
+            "game_stage": GameStage.PAUSED.value
+        }), 200
+
+    except Exception as e:
+        return jsonify({"error": "Internal server error pausing game session."}), 500
+
+@game_bp.route("/quit", methods=["POST"])
+@token_required
+def forfeit_game(current_user):
+    """
+    Voluntarily surrenders the active game match, logging a loss and revealing the answer.
+    """
+    try:
+        data = request.get_json() or {}
+        game_id = data.get("game_id")
+
+        if not game_id:
+            return jsonify({"error": "Missing game_id."}), 400
+
+        game = get_db_collection().game_sessions.find_one({"_id": game_id})
+        if not game:
+            return jsonify({"error": "Game session not found."}), 404
+
+        # SECURITY CHECK: Verify owner
+        if game["user_id"] != current_user["user_id"]:
+            return jsonify({"error": "Unauthorized. You do not own this game session."}), 403
+
+        # State Protection
+        if game["game_stage"] == GameStage.GAME_OVER.value:
+            return jsonify({"error": "Game is already over."}), 400
+        
+        history_entry = {
+            "game_id": game_id,
+            "category": game["category"],
+            "result": GameResult.LOSE.value,
+            "turns_used": game["turns_used"],
+            "xp_earned": 0,
+            "played_at": datetime.datetime.now(datetime.timezone.utc)
+        }
+
+        # Mark the session as completed
+        get_db_collection().game_sessions.update_one(
+            {"_id": game_id},
+            {
+                "$set": {
+                    "game_stage": GameStage.GAME_OVER.value,
+                    "game_result": GameResult.LOSE.value,
+                    "xp_earned": 0,
+                }
+            },
+        )
+
+        # Record the loss in the user's history (guests have no user document)
+        if not game.get("is_guest", False):
+            get_db_collection().users.update_one(
+                {"_id": game["user_id"]},
+                {
+                    "$push": {
+                        "history_singleplayer": history_entry
+                    }
+                },
+            )
+
+        return jsonify({
+            "message": "Game session successfully forfeited.",
+            "game_stage": GameStage.GAME_OVER.value,
+            "secret_answer": game["secret_answer"] # Give them closure!
+        }), 200
+
+    except Exception as e:
+        return jsonify({"error": "Internal server error processing forfeit request."}), 500
 
 @game_bp.route("/<game_id>/analysis", methods=["GET"])
 @token_required

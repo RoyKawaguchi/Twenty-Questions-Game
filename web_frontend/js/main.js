@@ -4,13 +4,14 @@ import {
     elements, renderCategoryButtons, switchViewToMatch, 
     updateMetaLabels, appendMessageBubble, setInputsEnabled, handleGameOverUI, 
     injectReasoningBoxes, clearReasoningBoxes, activateAuthForm, showAuthError, 
-    switchViewToAuth, toggleProfileDropdown, closeProfileDropdown, 
-    renderProfileMenuDetails, unselectAuthBtns
+    toggleProfileDropdown, closeProfileDropdown, 
+    renderProfileMenuDetails, renderUserProfileView, unselectAuthBtns,
+    highlightSelectedCategory, resetCategoryLaunchUI,
+    setupSingleplayerWorkspace, rebuildChatHistoryUI
 } from "./ui.js";
 
 /**
  * Centralized View Engine Layout Manager
- * Systematically isolates containers to guarantee no multiple screens leak through.
  */
 function switchView(targetContainer) {
     const containers = [
@@ -24,9 +25,7 @@ function switchView(targetContainer) {
     ];
 
     containers.forEach(container => {
-        if (container) {
-            container.classList.add("hidden");
-        }
+        if (container) container.classList.add("hidden");
     });
 
     if (targetContainer) {
@@ -40,27 +39,31 @@ function switchView(targetContainer) {
     }
 }
 
-function boot() {
-    // If the player isn't logged in, redirect them immediately to the gateway
+async function boot() {
+    setupCoreApplicationListeners();
+
     if (!state.token) {
-        switchViewToAuth(); // UI framework explicit helper
-        setupAuthListeners(); // Initialize buttons once
+        switchViewToAuth();
+        setupAuthListeners();
         return;
     }
 
     try {
-        renderProfileMenuDetails(state.username, state.isGuest);
-        setupGlobalNavigationListeners();
+        const profileData = await api.getUserInfo();        
+        renderProfileMenuDetails(profileData.username, profileData.is_guest, state.email);
+        
+        // Synchronize any active paused game waiting on the server database
+        state.activeGame = profileData.active_game || null; 
+        
         switchViewToDashboard();
     } catch (err) {
-        alert("Failed to connect to game backend pipeline: " + err.message);
+        console.error("Boot payload sync failed:", err);
+        switchViewToDashboard();
     }
 }
 
-function switchViewToDashboard() {
-    switchView(elements.dashboardContainer);
-    setupMenu();
-}
+function switchViewToDashboard() { switchView(elements.dashboardContainer); }
+function switchViewToAuth() { switchView(elements.authContainer); }
 
 async function switchViewToSingleplayer() {
     if (!state.token) {
@@ -70,73 +73,223 @@ async function switchViewToSingleplayer() {
     }
 
     try {
-        renderProfileMenuDetails(state.username, state.isGuest);
-        setupGlobalNavigationListeners();
         switchView(elements.singleplayerContainer);
+        
+        // Pass our active game state token straight over to our UI layer logic matrix
+        setupSingleplayerWorkspace(state.activeGame);
 
-        const data = await api.fetchCategories();
-        renderCategoryButtons(data.categories, selectCategoryTrigger);
+        // If there is no active game, load the categories choice buttons as usual
+        if (!state.activeGame) {
+            const data = await api.fetchCategories();
+            renderCategoryButtons(data.categories, selectCategoryTrigger);
+        }
     } catch (err) {
         alert("Failed to connect to game backend pipeline: " + err.message);
     }
 }
 
-function switchViewToMultiplayer() {
-    switchView(elements.multiplayerContainer);
-}
+function switchViewToMultiplayer() { switchView(elements.multiplayerContainer); }
+function switchViewToLeaderboard() { switchView(elements.leaderboardContainer); }
 
-function switchViewToLeaderboard() {
-    switchView(elements.leaderboardContainer);
-}
-
-function switchViewToProfile() {
-    switchView(elements.profileContainer);
-}
-
-function setupMenu() {
-    if (window.dashboardInitialized) {
-        return;
+async function switchViewToProfile() {
+    try {
+        switchView(elements.profileContainer);
+        const profileData = await api.getUserInfo();
+        renderUserProfileView(profileData);
+    } catch (err) {
+        alert("Could not synchronize profile metrics: " + err.message);
     }
-    window.dashboardInitialized = true;
+}
 
-    // Grid Dashboard Menu Item Actions
-    elements.menuSingleplayerBtn.addEventListener("click", () => {
-        switchViewToSingleplayer();
-    });
-    elements.menuMultiplayerBtn.addEventListener("click", () => {
-        switchViewToMultiplayer();
-    });
-    elements.menuLeaderboardBtn.addEventListener("click", () => {
-        switchViewToLeaderboard();
-    });
-    elements.menuProfileBtn.addEventListener("click", () => {
-        switchViewToProfile();
+/**
+ * Single-Run Core Event Wireframe Registration
+ */
+function setupCoreApplicationListeners() {
+    if (window.coreListenersInitialized) return;
+    window.coreListenersInitialized = true;
+
+    // 1. Top Navbar Header Dropdown Controls
+    elements.profileMenuBtn.addEventListener("click", (e) => {
+        e.stopPropagation();
+        toggleProfileDropdown();
     });
 
-    // Sub-view Return Navigation Flows
+    window.addEventListener("click", (e) => {
+        if (!elements.profileDropdownPanel.classList.contains("hidden")) {
+            if (!elements.profileDropdownPanel.contains(e.target) && !elements.profileMenuBtn.contains(e.target)) {
+                closeProfileDropdown();
+            }
+        }
+    });
+
+    // 2. Dashboard Hub Navigation Connections
+    elements.menuSingleplayerBtn.addEventListener("click", switchViewToSingleplayer);
+    elements.menuMultiplayerBtn.addEventListener("click", switchViewToMultiplayer);
+    elements.menuLeaderboardBtn.addEventListener("click", switchViewToLeaderboard);
+    elements.menuProfileBtn.addEventListener("click", switchViewToProfile);
+
+    // 3. Sub-View Centered Navigation Layout Return Flow Mapping
     const backBtnMappings = [
-        { btn: document.getElementById("singleplayer-back-btn"), target: switchViewToDashboard },
-        { btn: document.getElementById("multiplayer-back-btn"), target: switchViewToDashboard },
-        { btn: document.getElementById("leaderboard-back-btn"), target: switchViewToDashboard },
-        { btn: document.getElementById("profile-back-btn"), target: switchViewToDashboard }
+        { id: "singleplayer-back-btn", target: switchViewToDashboard },
+        { id: "multiplayer-back-btn", target: switchViewToDashboard },
+        { id: "leaderboard-back-btn", target: switchViewToDashboard },
+        { id: "profile-back-btn", target: switchViewToDashboard }
     ];
 
     backBtnMappings.forEach(mapping => {
-        if (mapping.btn) {
-            mapping.btn.addEventListener("click", mapping.target);
+        const btn = document.getElementById(mapping.id);
+        if (btn) {
+            btn.addEventListener("click", () => {
+                if (mapping.id === "singleplayer-back-btn") {
+                    resetCategoryLaunchUI();
+                    state.selectedCategory = null;
+                }
+                mapping.target();
+            });
         }
+    });
+
+    // 4. Category Grid Primary Launcher Button Trigger
+    elements.singleplayerLaunchBtn.addEventListener("click", async () => {
+        if (!state.selectedCategory) return;
+        try {
+            elements.singleplayerLaunchBtn.disabled = true;
+            const gameData = await api.startGame(state.selectedCategory);
+            
+            // Prime our runtime tracking session states
+            state.gameId = gameData.game_id;
+            state.category = gameData.category;
+            state.maxQuestions = gameData.max_questions;
+            state.turnsUsed = 0;
+            state.gameStage = gameData.game_stage;
+            state.analysisHistory = null;
+
+            resetCategoryLaunchUI();
+            state.selectedCategory = null; 
+
+            switchViewToMatch();
+            updateMetaLabels();
+            appendMessageBubble("AI", `I am thinking of an item in the following category: ${state.category}. Begin asking Yes or No questions!`);
+        } catch (err) {
+            alert("Could not spin up match context: " + err.message);
+            elements.singleplayerLaunchBtn.disabled = false;
+        }
+    });
+
+    // ─── 5. NEW ACTIVE DOSSIER PORTAL EXECUTORS ───
+    elements.portalResumeBtn.addEventListener("click", () => {
+        if (!state.activeGame) return;
+
+        // Copy cached data parameters back onto main active runtime variables
+        state.gameId = state.activeGame.game_id;
+        state.category = state.activeGame.category;
+        state.turnsUsed = state.activeGame.turns_used;
+        state.maxQuestions = state.activeGame.max_questions || 20;
+        state.gameStage = "PLAYING"; 
+        state.analysisHistory = null;
+
+        switchViewToMatch();
+        updateMetaLabels();
+
+        // Rebuild historical dialogue logs cleanly inside view layout arrays
+        rebuildChatHistoryUI(state.activeGame.chat_history);
+        
+        // Notify user that execution pipeline is back online
+        appendMessageBubble("AI", `Investigation re-established! You have ${state.maxQuestions - state.turnsUsed} questions remaining.`);
+        setInputsEnabled(true);
+        
+        // Empty out activeGame buffer cache since it's now our main live game
+        state.activeGame = null;
+    });
+
+    elements.portalForfeitBtn.addEventListener("click", async () => {
+        if (!state.activeGame) return;
+        const confirmForfeit = confirm("Are you sure you want to forfeit this case? This counts as an automatic loss on your global ranking records!");
+        if (!confirmForfeit) return;
+
+        try {
+            elements.portalForfeitBtn.disabled = true;
+            const result = await api.abandonGame(state.activeGame.game_id);
+            
+            alert(`Case file closed. The answer was: ${result.secret_answer}`);
+            
+            state.activeGame = null; // Clear out active dossier cache
+            setupSingleplayerWorkspace(null); // Re-render clean slate grid layout
+            
+            // Re-render selection button grid maps
+            const data = await api.fetchCategories();
+            renderCategoryButtons(data.categories, selectCategoryTrigger);
+        } catch (err) {
+            alert("Failed to close case safely: " + err.message);
+        } finally {
+            elements.portalForfeitBtn.disabled = false;
+        }
+    });
+
+    // ─── 6. NEW MID-GAMEPLAY CONTROLLER ROW ACTIONS ───
+    elements.gamePauseBtn.addEventListener("click", async () => {
+        if (!state.gameId) return;
+        try {
+            setInputsEnabled(false);
+            
+            const confirmPause = confirm("Pause and save match for later?");
+            if (!confirmPause) {
+                setInputsEnabled(true);
+                return;
+            }
+
+            await api.pauseGame(state.gameId);
+            
+            resetState();
+            boot();
+        } catch (err) {
+            alert("Failed to hibernate current match: " + err.message);
+            setInputsEnabled(true);
+        }
+    });
+
+    elements.gameAbandonBtn.addEventListener("click", async () => {
+        if (!state.gameId) return;
+        const confirmAbandon = confirm("Abandon match? This logs an official loss.");
+        if (!confirmAbandon) return;
+
+        try {
+            setInputsEnabled(false);
+            const result = await api.abandonGame(state.gameId);
+            
+            // Reuse your structural end game overlay pipeline to display details cleanly
+            handleGameOverUI("LOSS", result.secret_answer, "You voluntarily abandoned the match.");
+        } catch (err) {
+            alert("Failed to terminate match: " + err.message);
+            setInputsEnabled(true);
+        }
+    });
+
+    // 7. Session Termination Clean Loops
+    elements.signoutActionBtn.addEventListener("click", () => {
+        state.token = null;
+        state.username = null;
+        state.isGuest = false;
+        state.email = null;
+
+        localStorage.removeItem("token");
+        localStorage.removeItem("username");
+        localStorage.removeItem("isGuest");
+        localStorage.removeItem("email");
+
+        closeProfileDropdown();
+        resetState();
+        state.analysisHistory = null; 
+        state.activeGame = null;
+        
+        boot();
     });
 }
 
-// Separate helper to register event listeners for auth buttons and forms
 function setupAuthListeners() {
-    // Prevent duplicate registrations if boot cycles
-    if (window.authListenersInitialized) {
-        return;
-    }
+    if (window.authListenersInitialized) return;
     window.authListenersInitialized = true;
 
-    // View Switching Toggles
     elements.showLoginBtn.addEventListener("click", () => {
         activateAuthForm(elements.loginForm);
         unselectAuthBtns();
@@ -153,80 +306,60 @@ function setupAuthListeners() {
         elements.showGuestBtn.classList.add("btn-chosen");
     });
 
-    // Handle Form Submissions
     elements.signupForm.addEventListener("submit", async (e) => {
         e.preventDefault();
-        const username = document.getElementById("signup-username").value.trim();
-        const email = document.getElementById("signup-email").value.trim();
-        const password = document.getElementById("signup-password").value;
-
         try {
-            const data = await api.registerUser(username, email, password);
+            const data = await api.registerUser(
+                document.getElementById("signup-username").value.trim(),
+                document.getElementById("signup-email").value.trim(),
+                document.getElementById("signup-password").value
+            );
             handleAuthSuccess(data);
-        } catch (err) {
-            showAuthError(err.message);
-        }
+        } catch (err) { showAuthError(err.message); }
     });
 
     elements.loginForm.addEventListener("submit", async (e) => {
         e.preventDefault();
-        const identity = document.getElementById("login-identity").value.trim();
-        const password = document.getElementById("login-password").value;
-
         try {
-            const data = await api.loginUser(identity, password);
+            const data = await api.loginUser(
+                document.getElementById("login-identity").value.trim(),
+                document.getElementById("login-password").value
+            );
             handleAuthSuccess(data);
-        } catch (err) {
-            showAuthError(err.message);
-        }
+        } catch (err) { showAuthError(err.message); }
     });
 
     elements.guestForm.addEventListener("submit", async (e) => {
         e.preventDefault();
-        const nickname = document.getElementById("guest-nickname").value.trim();
-
         try {
-            const data = await api.initializeGuestSession(nickname);
+            const data = await api.initializeGuestSession(
+                document.getElementById("guest-nickname").value.trim()
+            );
             handleAuthSuccess(data);
-        } catch (err) {
-            showAuthError(err.message);
-        }
+        } catch (err) { showAuthError(err.message); }
     });
 }
 
 function handleAuthSuccess(payload) {
-    // 1. Commit token details to state object
     state.token = payload.token;
     state.username = payload.username;
     state.isGuest = payload.is_guest;
+    state.email = payload.email || "";
 
-    // 2. Persist profile info across browser updates
     localStorage.setItem("token", payload.token);
     localStorage.setItem("username", payload.username);
     localStorage.setItem("isGuest", payload.is_guest);
+    localStorage.setItem("email", payload.email || "");
 
-    // 3. Shift view into the Menu Ecosystem Dashboard
     boot();
 }
 
-async function selectCategoryTrigger(category) {
-    try {
-        const gameData = await api.startGame(category);
-        state.gameId = gameData.game_id;
-        state.category = gameData.category;
-        state.maxQuestions = gameData.max_questions;
-        state.turnsUsed = 0;
-        state.gameStage = gameData.game_stage;
-
-        switchViewToMatch(); // Updates visibility wrapper for gameplay
-        updateMetaLabels();
-        appendMessageBubble("AI", `I am thinking of an item in the following category: ${category}. Begin asking Yes or No questions!`);
-    } catch (err) {
-        alert("Could not spin up match context: " + err.message);
-    }
+function selectCategoryTrigger(category) {
+    state.selectedCategory = category;
+    highlightSelectedCategory(category);
 }
 
-// 1. Hook up Question Input Handler
+// Gameplay Action Form Event Hookups
 elements.questionForm.addEventListener("submit", async (e) => {
     e.preventDefault();
     const qText = elements.questionInput.value.trim();
@@ -249,12 +382,9 @@ elements.questionForm.addEventListener("submit", async (e) => {
         }
     } catch (err) {
         appendMessageBubble("AI", "Error: " + err.message);
-    } finally {
-        setInputsEnabled(true);
-    }
+    } finally { setInputsEnabled(true); }
 });
 
-// 2. Hook up Guess Input Handler
 elements.guessForm.addEventListener("submit", async (e) => {
     e.preventDefault();
     const gText = elements.guessInput.value.trim();
@@ -270,19 +400,16 @@ elements.guessForm.addEventListener("submit", async (e) => {
         state.gameStage = result.game_stage;
 
         updateMetaLabels();
-        appendMessageBubble("AI", `Result validation returned: ${result.response}`);
+        appendMessageBubble("AI", `${result.response}`);
 
         if (state.gameStage === "GAME_OVER") {
-            handleGameOverUI(result.game_result, result.secret_answer, state.turnsUsed);
+            handleGameOverUI(result.game_result, result.secret_answer, result.final_message);
         }
     } catch (err) {
         appendMessageBubble("AI", "Error: " + err.message);
-    } finally {
-        setInputsEnabled(true);
-    }
+    } finally { setInputsEnabled(true); }
 });
 
-// 3. Hook up "Examine AI Reasoning" Switch Toggle
 elements.analysisToggle.addEventListener("change", async () => {
     if (elements.analysisToggle.checked) {
         if (!state.analysisHistory) {
@@ -301,47 +428,12 @@ elements.analysisToggle.addEventListener("change", async () => {
     }
 });
 
-// 4. Hook up Match Reset Iteration
 elements.restartBtn.addEventListener("click", () => {
     resetState();
+    state.analysisHistory = null;
+    state.activeGame = null;
     switchViewToSingleplayer();
 });
 
-// Initialize on load
+// Document Initialization Bootstrap Hook
 document.addEventListener("DOMContentLoaded", boot);
-
-function setupGlobalNavigationListeners() {
-    if (window.navigationListenersInitialized) return;
-    window.navigationListenersInitialized = true;
-
-    // 1. Toggle open/close state on profile button click
-    elements.profileMenuBtn.addEventListener("click", (e) => {
-        e.stopPropagation();
-        toggleProfileDropdown();
-    });
-
-    // 2. Clear out container dropdown automatically if user clicks elsewhere
-    window.addEventListener("click", (e) => {
-        if (!elements.profileDropdownPanel.classList.contains("hidden")) {
-            if (!elements.profileDropdownPanel.contains(e.target) && !elements.profileMenuBtn.contains(e.target)) {
-                closeProfileDropdown();
-            }
-        }
-    });
-
-    // 3. SIGN OUT TRIGGER ACTION PIPELINE
-    elements.signoutActionBtn.addEventListener("click", () => {
-        state.token = null;
-        state.username = null;
-        state.isGuest = false;
-
-        localStorage.removeItem("token");
-        localStorage.removeItem("username");
-        localStorage.removeItem("isGuest");
-
-        closeProfileDropdown();
-        resetState();
-        
-        boot();
-    });
-}

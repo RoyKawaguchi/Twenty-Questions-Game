@@ -180,6 +180,10 @@ header h1 {
     border: 1px solid var(--border-color);
     border-color: yellow !important;
 }
+.btn-back {
+    display: block;
+    margin: 24px 0 0 auto;
+}
 
 .full-width { width: 100%; }
 
@@ -516,4 +520,403 @@ input:checked + .slider:before {
     font-size: 0.85rem;
     font-weight: 500;
     text-align: left;
+}
+
+/* Dashboard Menu Grid Styling */
+.menu-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr); 
+    gap: 1rem; 
+    margin-top: 1.5rem;
+    width: 100%;
+}
+
+/* Ensure buttons take up the full available card width inside their grid slots */
+.menu-btn {
+    width: 100%;
+    padding: 1rem; 
+    font-size: 1rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+/* Optional Hover/Juice Effect */
+.menu-btn:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+}
+
+
+/* ==========================================================================
+   MY PROFILE CONTAINER VIEW STYLING
+   ========================================================================== */
+
+/* View Layout Header Configuration */
+.view-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 1.5rem;
+}
+
+.view-header h2 {
+    
+    font-size: 2rem;
+    font-weight: 700;
+    letter-spacing: -0.01em;
+    margin-left: 0.5rem;
+}
+
+/* Tier 1: Hero Header Profile Block */
+.profile-hero {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    background: linear-gradient(135deg, #1e293b 0%, #111827 100%);
+    border: 1px solid var(--border-color);
+    padding: 1.5rem;
+    border-radius: 12px;
+    margin-bottom: 1.25rem;
+}
+
+.profile-meta-block {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+}
+
+.profile-name {
+    font-size: 1.6rem;
+    font-weight: 800;
+    letter-spacing: -0.02em;
+}
+
+.badge-xp {
+    background-color: rgba(59, 130, 246, 0.15);
+    border: 1px solid rgba(59, 130, 246, 0.4);
+    color: #60a5fa;
+    align-self: flex-start;
+    margin-top: 1.25rem;
+}
+
+/* Rank Circle Badge Components */
+.rank-badge-container {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 4px;
+}
+
+.rank-label {
+    font-size: 0.75rem;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    color: var(--text-muted);
+    font-weight: 700;
+}
+
+.rank-circle {
+    width: 60px;
+    height: 60px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.8rem;
+    font-weight: 900;
+    background-color: #0f172a;
+    border: 3px solid var(--border-color);
+    transition: all 0.3s ease;
+}
+
+/* Rank Glow Variants Matrix */
+.rank-s { border-color: #a855f7; box-shadow: 0 0 14px rgba(168, 85, 247, 0.4); color: #c084fc; }
+.rank-a { border-color: #06b6d4; box-shadow: 0 0 14px rgba(6, 182, 212, 0.4); color: #22d3ee; }
+.rank-b { border-color: #10b981; box-shadow: 0 0 14px rgba(16, 185, 129, 0.4); color: #34d399; }
+.rank-c { border-color: #64748b; box-shadow: 0 0 14px rgba(100, 116, 139, 0.2); color: #94a3b8; }
+
+/* Tier 2: Analytics Cards Matrix Grid */
+.stats-dashboard-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 12px;
+    margin-bottom: 1.5rem;
+}
+
+.stat-card {
+    background-color: rgba(15, 23, 42, 0.4);
+    border: 1px solid var(--border-color);
+    padding: 1rem;
+    border-radius: 10px;
+    text-align: left;
+}
+
+.stat-card-title {
+    font-size: 0.8rem;
+    font-weight: 600;
+    color: var(--text-muted);
+    display: block;
+    margin-bottom: 4px;
+}
+
+.stat-card-value {
+    font-size: 1.4rem;
+    font-weight: 700;
+    color: var(--text-main);
+}
+
+/* Tier 3: Chronological History Feeds */
+.history-section h3 {
+    font-size: 1.1rem;
+    font-weight: 700;
+    margin-bottom: 0.75rem;
+}
+
+.history-tabs {
+    display: flex;
+    gap: 8px;
+    margin-bottom: 1rem;
+    border-bottom: 1px solid var(--border-color);
+    padding-bottom: 0.5rem;
+}
+
+.tab-btn {
+    background: transparent;
+    border: none;
+    color: var(--text-muted);
+    font-size: 0.9rem;
+    font-weight: 600;
+    padding: 6px 12px;
+    cursor: pointer;
+    border-radius: 6px;
+    transition: all 0.2s ease;
+}
+
+.tab-btn:hover:not(:disabled) {
+    color: var(--text-main);
+    background-color: rgba(255, 255, 255, 0.05);
+}
+
+.tab-btn.btn-chosen {
+    color: #facc15;
+    background-color: rgba(250, 204, 21, 0.1);
+}
+
+.history-list {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    max-height: 240px;
+    overflow-y: auto;
+    padding-right: 4px;
+}
+
+/* Layout Row Custom Object Elements */
+.history-item-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    background-color: #0f172a;
+    border: 1px solid var(--border-color);
+    padding: 10px 14px;
+    border-radius: 8px;
+    font-size: 0.9rem;
+}
+
+.history-left-block {
+    display: flex;
+    flex-direction: column;
+    text-align: left;
+    gap: 2px;
+}
+
+.history-category {
+    font-weight: 600;
+    color: var(--text-main);
+    text-transform: capitalize;
+}
+
+.history-date {
+    font-size: 0.75rem;
+    color: var(--text-muted);
+}
+
+.history-right-block {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+.history-turns {
+    color: var(--text-muted);
+    font-size: 0.85rem;
+}
+
+.history-xp {
+    color: #3b82f6;
+    font-weight: 600;
+    font-size: 0.85rem;
+}
+
+/* Outcome Status Pills */
+.status-pill {
+    padding: 4px 8px;
+    border-radius: 6px;
+    font-size: 0.75rem;
+    font-weight: 700;
+    letter-spacing: 0.02em;
+    min-width: 54px;
+    text-align: center;
+}
+
+.pill-win {
+    background-color: rgba(16, 185, 129, 0.15);
+    border: 1px solid rgba(16, 185, 129, 0.4);
+    color: #34d399;
+}
+
+.pill-lose {
+    background-color: rgba(239, 68, 68, 0.15);
+    border: 1px solid rgba(239, 68, 68, 0.4);
+    color: #f87171;
+}
+
+.empty-history-text {
+    font-size: 0.9rem;
+    color: var(--text-muted);
+    text-align: center;
+    padding: 2rem 0;
+    font-style: italic;
+}
+
+.stat-card-note {
+    display: block;
+    font-size: 0.75rem;
+    color: #fbbf24; /* Amber/gold accent tone to catch the eye */
+    margin-top: 6px;
+    font-weight: 500;
+    line-height: 1.3;
+}
+
+.dashboard-subtitle {
+    font-size: 0.9rem;
+    color: var(--text-muted);
+    margin-top: 4px;
+}
+
+/* Centered Launch Action Wrap */
+.launch-action-container {
+    display: flex;
+    justify-content: center;
+    margin-top: 2rem;
+    width: 100%;
+}
+
+/* The Primary Action Gate Button */
+.launch-btn {
+    min-width: 200px;
+    padding: 14px 32px;
+    font-size: 1.1rem;
+    font-weight: 700;
+    letter-spacing: 0.02em;
+    background-color: #1e293b; /* Starts muted slate dark */
+    border: 2px solid var(--border-color);
+    color: var(--text-muted);
+    transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+/* The Active State when a category is checked */
+.launch-btn.ready-to-play {
+    background-color: var(--primary);
+    color: var(--text-main);
+    border-color: #facc15; /* Bright yellow border indicator */
+    box-shadow: 0 0 12px rgba(250, 204, 21, 0.25);
+}
+
+.launch-btn.ready-to-play:hover {
+    background-color: var(--primary-hover);
+    transform: scale(1.03);
+    box-shadow: 0 0 16px rgba(250, 204, 21, 0.4);
+}
+
+#active-investigation-portal {
+    margin-top: 1.5rem;
+    animation: formFadeIn 0.3s ease-out;
+}
+
+.portal-card {
+    background: linear-gradient(135deg, #1e293b 0%, #0f172a 100%);
+    border: 2px dashed #eab308; /* Warning gold color indicator border line */
+    border-radius: 12px;
+    padding: 2rem 1.5rem;
+    text-align: center;
+}
+
+.portal-badge {
+    background-color: rgba(234, 179, 8, 0.15);
+    border: 1px solid rgba(234, 179, 8, 0.4);
+    color: #facc15;
+    padding: 6px 14px;
+    border-radius: 20px;
+    font-size: 0.8rem;
+    font-weight: 700;
+    display: inline-block;
+    letter-spacing: 0.05em;
+    margin-bottom: 1rem;
+}
+
+.portal-desc {
+    color: var(--text-muted);
+    font-size: 0.95rem;
+    line-height: 1.5;
+    max-width: 440px;
+    margin: 0 auto 1.5rem auto;
+}
+
+.portal-stats-box {
+    background-color: rgba(15, 23, 42, 0.6);
+    border: 1px solid var(--border-color);
+    padding: 1rem;
+    border-radius: 8px;
+    max-width: 380px;
+    margin: 0 auto 2rem auto;
+    display: flex;
+    justify-content: space-around;
+    font-size: 0.9rem;
+    color: var(--text-muted);
+}
+
+/* ==========================================================================
+   GAME ACTIVE SESSION ACTIONS & MANAGEMENT ROW
+   ========================================================================== */
+
+.game-session-control-row {
+    display: flex;
+    gap: 12px;
+    margin-top: 16px;
+    width: 100%;
+}
+
+.flex-btn {
+    flex: 1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    font-size: 0.9rem;
+    padding: 10px 16px;
+}
+
+/* Red Outline Variant Token explicitly for active match forfeit warnings */
+.btn-danger.btn-outline {
+    background-color: transparent;
+    border: 1px solid #ef4444;
+    color: #f87171;
+}
+
+.btn-danger.btn-outline:hover:not(:disabled) {
+    background-color: #7f1d1d;
+    border-color: #f87171;
+    color: var(--text-main);
 }
