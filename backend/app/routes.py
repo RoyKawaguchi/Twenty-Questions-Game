@@ -430,7 +430,7 @@ def submit_question(current_user):
             "game_id": game_id,
             "response": final_response_text,
             "turns_used": new_turns,
-            "game_stage": new_stage
+            "game_stage": new_stage,
         }), 200
 
     except Exception as e:
@@ -459,10 +459,15 @@ def submit_guess(current_user):
         if game["user_id"] != current_user["user_id"]:
             return jsonify({"error": "Unauthorized. You do not own this game session."}), 403
 
-        if game["game_stage"] == GameStage.PAUSED.value:
-            return jsonify({"error": "This match is currently paused. Please resume it first."}), 400
+        current_stage = game["game_stage"]
+        if current_stage == GameStage.PAUSED.value:
+            current_stage = GameStage.PLAYING.value
+            get_db_collection().game_sessions.update_one(
+                {"_id": game_id},
+                {"$set": {"game_stage": GameStage.PLAYING.value}}
+            )
 
-        if game["game_stage"] == GameStage.GAME_OVER.value:
+        if current_stage == GameStage.GAME_OVER.value:
             return jsonify({"error": "Game is already over."}), 400
 
         # Get LLM evaluation

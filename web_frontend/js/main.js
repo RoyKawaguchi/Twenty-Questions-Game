@@ -1,7 +1,7 @@
 import * as api from "./api.js";
 import { state, resetState } from "./state.js";
 import { 
-    elements, renderCategoryButtons, switchViewToMatch, 
+    elements, renderCategoryButtons, setupMatchViewUI,
     updateMetaLabels, appendMessageBubble, setInputsEnabled, handleGameOverUI, 
     injectReasoningBoxes, clearReasoningBoxes, activateAuthForm, showAuthError, 
     toggleProfileDropdown, closeProfileDropdown, 
@@ -101,6 +101,13 @@ async function switchViewToProfile() {
     }
 }
 
+function switchViewToMatch() { 
+    switchView(elements.gameContainer); 
+    elements.chatDisplay.innerHTML = "";
+    
+    setupMatchViewUI();
+}
+
 /**
  * Single-Run Core Event Wireframe Registration
  */
@@ -169,7 +176,10 @@ function setupCoreApplicationListeners() {
 
             switchViewToMatch();
             updateMetaLabels();
-            appendMessageBubble("AI", `I am thinking of an item in the following category: ${state.category}. Begin asking Yes or No questions!`);
+            appendMessageBubble(
+                "AI", 
+                `I am thinking of an item in the following category: ${state.category}. Begin asking Yes or No questions!`,
+                true);
         } catch (err) {
             alert("Could not spin up match context: " + err.message);
             elements.singleplayerLaunchBtn.disabled = false;
@@ -195,7 +205,11 @@ function setupCoreApplicationListeners() {
         rebuildChatHistoryUI(state.activeGame.chat_history);
         
         // Notify user that execution pipeline is back online
-        appendMessageBubble("AI", `Investigation re-established! You have ${state.maxQuestions - state.turnsUsed} questions remaining.`);
+        appendMessageBubble(
+            "AI", 
+            `Investigation re-established! You have ${state.maxQuestions - state.turnsUsed} questions remaining.`,
+            false
+        );
         setInputsEnabled(true);
         
         // Empty out activeGame buffer cache since it's now our main live game
@@ -250,7 +264,7 @@ function setupCoreApplicationListeners() {
 
     elements.gameAbandonBtn.addEventListener("click", async () => {
         if (!state.gameId) return;
-        const confirmAbandon = confirm("Abandon match? This logs an official loss.");
+        const confirmAbandon = confirm("Abandon match? This will be logged as a loss.");
         if (!confirmAbandon) return;
 
         try {
@@ -258,7 +272,7 @@ function setupCoreApplicationListeners() {
             const result = await api.abandonGame(state.gameId);
             
             // Reuse your structural end game overlay pipeline to display details cleanly
-            handleGameOverUI("LOSS", result.secret_answer, "You voluntarily abandoned the match.");
+            handleGameOverUI("LOSS", result.secret_answer, "You forefeited the match.");
         } catch (err) {
             alert("Failed to terminate match: " + err.message);
             setInputsEnabled(true);
@@ -366,7 +380,7 @@ elements.questionForm.addEventListener("submit", async (e) => {
     if (!qText) return;
 
     elements.questionInput.value = "";
-    appendMessageBubble("USER_QUESTION", qText);
+    appendMessageBubble("USER_QUESTION", qText, false);
     setInputsEnabled(false);
 
     try {
@@ -375,13 +389,18 @@ elements.questionForm.addEventListener("submit", async (e) => {
         state.gameStage = result.game_stage;
         
         updateMetaLabels();
-        appendMessageBubble("AI", result.response);
+
+        appendMessageBubble("AI", result.response, true);
 
         if (state.gameStage === "FINAL_GUESS") {
-            appendMessageBubble("AI", "That's all for the Q&A's! Please enter your final guess now!");
+            appendMessageBubble(
+                "AI", 
+                "That's all for the Q&A's! Please enter your final guess now!",
+                false
+            );
         }
     } catch (err) {
-        appendMessageBubble("AI", "Error: " + err.message);
+        appendMessageBubble("AI", "Error: " + err.message, false);
     } finally { setInputsEnabled(true); }
 });
 
@@ -391,7 +410,7 @@ elements.guessForm.addEventListener("submit", async (e) => {
     if (!gText) return;
 
     elements.guessInput.value = "";
-    appendMessageBubble("USER_GUESS", gText);
+    appendMessageBubble("USER_GUESS", gText, false);
     setInputsEnabled(false);
 
     try {
@@ -400,13 +419,13 @@ elements.guessForm.addEventListener("submit", async (e) => {
         state.gameStage = result.game_stage;
 
         updateMetaLabels();
-        appendMessageBubble("AI", `${result.response}`);
+        appendMessageBubble("AI", `${result.response}`, true);
 
         if (state.gameStage === "GAME_OVER") {
-            handleGameOverUI(result.game_result, result.secret_answer, result.final_message);
+            handleGameOverUI(result.game_result, result.secret_answer, result.response);
         }
     } catch (err) {
-        appendMessageBubble("AI", "Error: " + err.message);
+        appendMessageBubble("AI", "Error: " + err.message, false);
     } finally { setInputsEnabled(true); }
 });
 
