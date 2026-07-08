@@ -29,7 +29,7 @@ export async function registerUser(username, email, password) {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ username, email, password })
     });
-    
+
     const data = await response.json();
     if (!response.ok) {
         throw new Error(data.error || 'Failed to sign up.');
@@ -43,7 +43,7 @@ export async function loginUser(identity, password) {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ identity, password })
     });
-    
+
     const data = await response.json();
     if (!response.ok) {
         throw new Error(data.error || 'Invalid credentials.');
@@ -57,7 +57,7 @@ export async function initializeGuestSession(nickname) {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ nickname })
     });
-    
+
     const data = await response.json();
     if (!response.ok) {
         throw new Error(data.error || 'Failed to join as guest.');
@@ -76,11 +76,25 @@ export async function getUserInfo() {
         throw new Error(errorData.error || "Failed to retrieve user info from pipeline.");
     }
 
-    return await response.json(); 
+    return await response.json();
+}
+
+export async function getLeaderboard() {
+    const response = await fetch(`${AUTH_BASE_URL}/leaderboard`, {
+        method: "GET",
+        headers: getAuthenticatedHeaders()
+    });
+
+    if (!response.ok) {
+        const errorData = await response.json().catch(() => ({}));
+        throw new Error(errorData.error || "Failed to retrieve user info from pipeline.");
+    }
+
+    return await response.json();
 }
 
 // =====================================================================
-// CORE GAME PLAYPLAY API CALLS (SECURED VIA JWT BEARER TOKENS)
+// STATIC REFERENCE DATA (kept on REST — no need for a live socket round-trip)
 // =====================================================================
 
 export async function fetchCategories() {
@@ -93,89 +107,7 @@ export async function fetchCategories() {
     return await response.json(); // Returns { categories: [...] }
 }
 
-export async function startGame(category) {
-    const headers = { 'Content-Type': 'application/json' };
-    
-    if (state.token) {
-        headers['Authorization'] = `Bearer ${state.token}`;
-    } else {
-        console.warn("WARNING: state.token is missing or null right now!");
-    }
-
-    const response = await fetch(`${GAME_BASE_URL}/start`, {
-        method: 'POST',
-        headers: headers,
-        body: JSON.stringify({ category })
-    });
-
-    const data = await response.json();
-    if (!response.ok) {
-        throw new Error(data.error || 'Failed to start game session.');
-    }
-    return data;
-}
-
-export async function askQuestion(gameId, questionText) {
-    const res = await fetch(`${GAME_BASE_URL}/question`, {
-        method: "POST",
-        headers: getAuthenticatedHeaders(),
-        body: JSON.stringify({ game_id: gameId, question_text: questionText }),
-    });
-    
-    const data = await res.json();
-    if (!res.ok) throw new Error(data.error || "Failed to submit question.");
-    return data; // Returns { game_id, response, turns_used, game_stage }
-}
-
-export async function submitGuess(gameId, guessText) {
-    const res = await fetch(`${GAME_BASE_URL}/guess`, {
-        method: "POST",
-        headers: getAuthenticatedHeaders(),
-        body: JSON.stringify({ game_id: gameId, guess_text: guessText }),
-    });
-    
-    const data = await res.json();
-    if (!res.ok) throw new Error(data.error || "Failed to submit guess.");
-    return data; // Returns { game_id, game_stage, game_result, response, turns_used, [secret_answer], final_message }
-}
-
-export async function pauseGame(gameId) {
-    const response = await fetch(`${GAME_BASE_URL}/pause`, {
-        method: "POST",
-        headers: getAuthenticatedHeaders(),
-        body: JSON.stringify({ game_id: gameId })
-    });
-
-    if (!response.ok) {
-        const errorData = await response.json().catch(() => ({}));
-        throw new Error(errorData.error || "Failed to hibernate the active match session.");
-    }
-
-    return await response.json(); // Returns { message, game_stage }
-}
-
-export async function quitGame(gameId) {
-    const response = await fetch(`${GAME_BASE_URL}/quit`, {
-        method: "POST",
-        headers: getAuthenticatedHeaders(),
-        body: JSON.stringify({ game_id: gameId })
-    });
-
-    if (!response.ok) {
-        const errorData = await response.json().catch(() => ({}));
-        throw new Error(errorData.error || "Failed to forfeit match session.");
-    }
-
-    return await response.json(); // Returns { message, game_stage, secret_answer }
-}
-
-export async function fetchAnalysis(gameId) {
-    const res = await fetch(`${GAME_BASE_URL}/${gameId}/analysis`, {
-        method: "GET",
-        headers: getAuthenticatedHeaders()
-    });
-    
-    const data = await res.json();
-    if (!res.ok) throw new Error(data.error || "Failed to retrieve analysis logs.");
-    return data; // Returns { chat_history: [...] }
-}
+// NOTE: All gameplay actions (start/question/guess/pause/resume/quit/analysis,
+// for both singleplayer and multiplayer) have moved to socket.js — see the
+// sp_* and multiplayer events wired up there. This keeps REST scoped to
+// authentication + static reference data only.

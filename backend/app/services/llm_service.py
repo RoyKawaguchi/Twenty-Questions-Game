@@ -59,7 +59,7 @@ def evaluate_question(category: str, secret_answer: str, question: str) -> dict:
             result = completion.choices[0].message.content
             parsed = json.loads(result)
 
-            response_raw = str(parsed.get("response", "")).strip().lower()
+            response_raw = str(parsed.get("response", "")).strip().capitalize()
 
             try:
                 response_enum = EvaluationResponse(response_raw)
@@ -114,7 +114,7 @@ def evaluate_guess(guess: str, answer: str) -> dict:
             result = completion.choices[0].message.content
             parsed = json.loads(result)
 
-            response_raw = str(parsed.get("response", "")).strip().lower()
+            response_raw = str(parsed.get("response", "")).strip().capitalize()
             
             try:
                 response_enum = EvaluationResponse(response_raw)

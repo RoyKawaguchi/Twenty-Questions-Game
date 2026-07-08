@@ -32,8 +32,12 @@
                     
                     <div class="dropdown-body">
                         <div class="stat-row">
-                            <span class="stat-label">Current Tier:</span>
-                            <span class="stat-value tier-badge">Novice Detective</span>
+                            <span class="stat-label">Current Rank:</span>
+                            <span class="stat-value tier-badge">Unranked</span>
+                        </div>
+                        <div class="xp-row">
+                            <span class="xp-label">Total XP:</span>
+                            <span class="xp-value xp-badge">0</span>
                         </div>
                     </div>
                     
@@ -130,8 +134,8 @@
 
             <div id="active-investigation-portal" class="hidden">
                 <div class="portal-card">
-                    <div class="portal-badge">⚠️ ACTIVE DOSSIER OPEN</div>
-                    <p class="portal-desc">You are currently in the middle of a live investigation. You must resolve or forfeit this case before starting a new one.</p>
+                    <div class="portal-badge">⚠️ PAUSED GAME PENDING</div>
+                    <p class="portal-desc">You are currently in the middle of a live game. You must resolve or forfeit this case before starting a new one.</p>
                     
                     <div class="portal-stats-box">
                         <div>Category: <span id="portal-meta-category" style="font-weight:700; color:var(--text-main);">--</span></div>
@@ -147,12 +151,64 @@
         </main>        
 
         <main id="multiplayer-container" class="card hidden">
-            <div class="view-header">
-                <h2>Multiplayer Lobby</h2>
+            <div class="view-header" style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+                <h2>Multiplayer Matchmaking</h2>
                 <button class="btn btn-primary btn-back" id="multiplayer-back-btn">← Back to Menu</button>
             </div>
-            <div class="placeholder-content">
-                <p>Multiplayer features coming soon! Challenge your friends in real-time match-ups.</p>
+            
+            <div id="mp-entrance-portal" class="mp-portal-grid">
+                <div class="mp-portal-zone" style="margin-bottom: 24px; padding: 20px; border: 1px solid var(--border-color); border-radius: 8px;">
+                    <h3>Host a New Game</h3>
+                    <p class="user-subtext" style="color: var(--text-muted); margin-bottom: 16px;">Spin up a private room lobby. You control the launcher matching parameters.</p>
+                    <button id="mp-create-room-btn" class="btn btn-primary full-width">Create Private Room</button>
+                </div>
+                
+                <div class="mp-portal-separator" style="text-align: center; margin: 16px 0; color: var(--text-muted); font-weight: bold;"><span>- OR -</span></div>
+                
+                <div class="mp-portal-zone" style="padding: 20px; border: 1px solid var(--border-color); border-radius: 8px;">
+                    <h3>Join Existing Game</h3>
+                    <p class="user-subtext" style="color: var(--text-muted); margin-bottom: 16px;">Enter a 4-character room code to step inside your partner's room context.</p>
+                    <form id="mp-join-room-form" class="input-group" style="display: flex; gap: 8px;">
+                        <input type="text" id="mp-room-code-input" placeholder="e.g., K8X1" maxlength="4" style="text-transform: uppercase; flex: 1; padding: 10px; border-radius: 6px; border: 1px solid var(--border-color); background: var(--bg-dark); color: var(--text-main);" required>
+                        <button type="submit" class="btn btn-accent" id="mp-join-submit-btn">Join Room</button>
+                    </form>
+                </div>
+            </div>
+
+            <div id="mp-room-lobby-arena" class="hidden">
+                <div class="lobby-header-badge-row" style="background: var(--bg-dark); padding: 16px; border-radius: 8px; margin-bottom: 24px; display: flex; justify-content: space-between; align-items: center;">
+                    <div class="room-code-badge-wrapper">
+                        <span class="badge-label" style="font-size: 0.75rem; color: var(--text-muted); display: block;">ROOM SECURITY CODE</span>
+                        <div id="lobby-code-display" class="secure-code-text" style="font-size: 2rem; font-weight: bold; color: var(--accent); letter-spacing: 2px;">----</div>
+                    </div>
+                    <div id="lobby-status-text" class="lobby-pulse-note" style="color: var(--text-muted); font-style: italic;">Share the code to play with friends!</div>
+                </div>
+
+                <div class="lobby-layout-split" style="display: grid; grid-template-columns: 1fr 1fr; gap: 24px;">
+                    <div class="lobby-players-pane">
+                        <h3 style="margin-bottom: 12px;">Connected Investigators</h3>
+                        <div id="lobby-player-list" class="lobby-player-list-grid" style="display: flex; flex-direction: column; gap: 10px;">
+                            </div>
+                    </div>
+                    
+                    <div class="lobby-config-pane" style="display: flex; flex-direction: column; justify-content: space-between;">
+                        <div>
+                            <h3 style="margin-bottom: 12px;">Match Configuration</h3>
+                            <div id="mp-host-category-controls" class="hidden">
+                                <label class="form-group-label" style="display:block; margin-bottom:12px; color: var(--text-muted);">Select Target Word Bank Category:</label>
+                                <div id="mp-category-grid" class="category-grid smaller-grid" style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px;">
+                                    </div>
+                            </div>
+                            <div id="mp-guest-waiting-note" class="hidden" style="background: var(--card-dark); padding: 16px; border-radius: 6px; border-left: 4px solid var(--primary);">
+                                <p style="margin: 0; color: var(--text-muted);">🔒 Only the room host can configure parameters and launch the match arena vector.</p>
+                            </div>
+                        </div>
+                        
+                        <div class="lobby-action-row" style="margin-top: 24px;">
+                            <button id="mp-launch-match-btn" class="btn btn-accent full-width" style="width: 100%; padding: 14px;" disabled>Launch Investigation Arena</button>
+                        </div>
+                    </div>
+                </div>
             </div>
         </main>
 
@@ -161,8 +217,9 @@
                 <h2>Global Leaderboards</h2>
                 <button class="btn btn-primary btn-back" id="leaderboard-back-btn">← Back to Menu</button>
             </div>
-            <div class="placeholder-content">
-                <p>Leaderboard ranks are updating. Keep playing to secure your spot at the top!</p>
+            <div id="leaderboard-list" class="leaderboard-list-wrapper">
+                <!-- Rows go here -->
+                 <p>TESTING</p>
             </div>
         </main>
 
@@ -179,7 +236,7 @@
                     <span id="profile-xp-display" class="badge badge-xp">0 XP Total</span>
                 </div>
                 <div class="rank-badge-container">
-                    <span class="rank-label">Current Grade</span>
+                    <span class="rank-label">Current Tier</span>
                     <div id="profile-rank-badge" class="rank-circle rank-c">C</div>
                     <span id="profile-rank-note" class="stat-card-note"></span>
                 </div>
@@ -187,11 +244,11 @@
         
             <div class="stats-dashboard-grid">
                 <div class="stat-card">
-                    <span class="stat-card-title">Avg Turns to Win</span>
+                    <span class="stat-card-title">Avg Turns to Win (Single player)</span>
                     <div class="stat-card-value" id="stat-avg-turns">0.0</div>
                 </div>
                 <div class="stat-card">
-                    <span class="stat-card-title">Win Rate</span>
+                    <span class="stat-card-title">Win Rate (Single player)</span>
                     <div class="stat-card-value" id="stat-win-rate">0%</div>
                 </div>
             </div>
@@ -202,7 +259,7 @@
                 <h3>Match History</h3>
                 <div class="history-tabs">
                     <button class="tab-btn btn-chosen" id="tab-singleplayer-btn">Single Player</button>
-                    <button class="tab-btn" id="tab-multiplayer-btn" disabled>Multiplayer (Soon)</button>
+                    <button class="tab-btn" id="tab-multiplayer-btn">Multiplayer</button>
                 </div>
                 <div id="profile-history-list" class="history-list">
                     <p class="empty-history-text">No matches played yet. Go play some games!</p>
@@ -266,6 +323,7 @@
         </main>
     </div>
 
+    <script src="https://cdn.socket.io/4.7.5/socket.io.min.js"></script>
     <script type="module" src="js/main.js"></script>
 </body>
 </html>

@@ -2,13 +2,15 @@ import json
 import os
 from flask import Flask, jsonify
 from flask_cors import CORS
+from flask_socketio import SocketIO
 
-from app.config import Config
+from app.config import config  # Import the pre-validated config instance directly
 from app.database import db_wrapper
 
-def create_app():
+# Initialize SocketIO globally for file importing across routing architectures
+socketio = SocketIO()
 
-    # Load .env file located in the root
+def create_app():
     base_dir = os.path.abspath(os.path.dirname(os.path.dirname(__file__)))
     env_path = os.path.join(base_dir, ".env")
     
@@ -18,27 +20,38 @@ def create_app():
 
     app = Flask(__name__)
     
-    config_obj = Config()
-    config_obj.validate()
+    # Run structural validations
+    config.validate()
     
+    # Bind environment keys cleanly to Flask core config space
     app.config.update(
-        MONGO_URI=config_obj.MONGO_URI,
-        OPENAI_API_KEY=config_obj.OPENAI_API_KEY,
-        FLASK_ENV=config_obj.FLASK_ENV,
-        JWT_SECRET_KEY=config_obj.JWT_SECRET_KEY
+        MONGO_URI=config.MONGO_URI,
+        OPENAI_API_KEY=config.OPENAI_API_KEY,
+        FLASK_ENV=config.FLASK_ENV,
+        JWT_SECRET_KEY=config.JWT_SECRET_KEY,
+        SECRET_KEY=config.JWT_SECRET_KEY  # Required for session signature configurations
     )
 
-    # Load and map configuration dataset dynamically
+    # Load static word lists
     json_config_path = os.path.join(os.path.dirname(__file__), "config.json")
     with open(json_config_path, "r", encoding='utf-8') as f:
         game_data = json.load(f)
         app.config["GAME_CATEGORIES"] = game_data["categories"]
         app.config["DEFAULT_MAX_QUESTIONS"] = game_data.get("max_questions", 20)
 
+    # Configure API route permissions
     CORS(app, resources={r"/*": {"origins": "*"}})
+    
+    # Initialize shared persistence module pool
     db_wrapper.init_app(app)
 
-    # Import and register game engine blueprints here dynamically
+    # Wrap application engine with real-time events capabilities safely
+    socketio.init_app(app, cors_allowed_origins="*")
+
+    # Bind active listener paths
+    from app.sockets import register_socket_events
+    register_socket_events(socketio)
+
     from app.routes import auth_bp, game_bp
     app.register_blueprint(auth_bp)
     app.register_blueprint(game_bp)

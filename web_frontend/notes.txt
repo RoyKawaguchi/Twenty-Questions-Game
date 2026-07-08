@@ -1,5 +1,13 @@
-Renamed #setup-container to #singleplayer-container: Since this houses your active category grid and game configuration, it maps perfectly to your requirement ("single player will show the current game mode").
+BUGS:
+- ai explanation bubble shown for non-analysis responses
 
-Added #dashboard-container: This is your new Main Menu featuring the 4 primary navigation buttons.
 
-Added Placeholder Sections: #multiplayer-container, #leaderboard-container, and #profile-container are all initialized with a clean .hidden class.
+MULTIPLAYER
+- prevent same player from joining
+- does not highlight border when selecting category
+- chat bubble of user is not stylized
+- turns used not updated
+- fetching analysis does not work
+
+localStorage.clear();
+window.location.reload();

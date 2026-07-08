@@ -1,18 +1,24 @@
 import * as api from "./api.js";
-import { state, resetState } from "./state.js";
-import { 
-    elements, renderCategoryButtons, setupMatchViewUI,
-    updateMetaLabels, appendMessageBubble, setInputsEnabled, handleGameOverUI, 
-    injectReasoningBoxes, clearReasoningBoxes, activateAuthForm, showAuthError, 
-    toggleProfileDropdown, closeProfileDropdown, 
+import { state, resetState, resetMatchState, GAME_STAGES, GAME_MODES } from "./state.js";
+import {
+    elements, activateAuthForm, showAuthError,
+    toggleProfileDropdown, closeProfileDropdown,
     renderProfileMenuDetails, renderUserProfileView, unselectAuthBtns,
-    highlightSelectedCategory, resetCategoryLaunchUI,
-    setupSingleplayerWorkspace, rebuildChatHistoryUI
+    renderLeaderboardView
 } from "./ui.js";
 
-/**
- * Centralized View Engine Layout Manager
- */
+import { initializeSocketConnection, disconnectSocket, socketService } from './socket.js';
+import { renderLobbyView, renderLobbyCategories, lobbyElements } from './views/lobbyView.js';
+import {
+    gameplayElements, setupMatchViewUI, appendResponsiveMessageBubble,
+    synchronizeInputControls, handleGameOverUI, injectReasoningBoxes,
+    clearReasoningBoxes, rebuildChatHistoryUI, setInputsEnabled
+} from './views/gameplayView.js';
+import {
+    singleplayerLobbyElements, setupSingleplayerWorkspace,
+    renderSingleplayerCategories, highlightSelectedCategory, resetCategoryLaunchUI
+} from './views/singleplayerLobbyView.js';
+
 function switchView(targetContainer) {
     const containers = [
         elements.authContainer,
@@ -28,19 +34,20 @@ function switchView(targetContainer) {
         if (container) container.classList.add("hidden");
     });
 
-    if (targetContainer) {
-        targetContainer.classList.remove("hidden");
-    }
+    if (targetContainer) targetContainer.classList.remove("hidden");
 
-    if (targetContainer === elements.authContainer) {
-        elements.profileMenuBtn.classList.add("hidden");
-    } else {
-        elements.profileMenuBtn.classList.remove("hidden");
+    if (elements.profileMenuBtn) {
+        if (targetContainer === elements.authContainer) {
+            elements.profileMenuBtn.classList.add("hidden");
+        } else {
+            elements.profileMenuBtn.classList.remove("hidden");
+        }
     }
 }
 
 async function boot() {
     setupCoreApplicationListeners();
+    setupMultiplayerActionListeners(); 
 
     if (!state.token) {
         switchViewToAuth();
@@ -48,13 +55,22 @@ async function boot() {
         return;
     }
 
+    initializeSocketConnection({
+        onMatchLaunchTriggered: handleMatchLaunchTriggered,
+        onAiResponseProcessed: handleAiResponseProcessed,
+        onReturnedToLobby: handleReturnedToLobby,   // <-- added
+        onConnectError: (err) => {
+            console.error("Realtime channel rejected the session:", err.message);
+        }
+    });
+
     try {
-        const profileData = await api.getUserInfo();        
-        renderProfileMenuDetails(profileData.username, profileData.is_guest, state.email);
-        
-        // Synchronize any active paused game waiting on the server database
-        state.activeGame = profileData.active_game || null; 
-        
+        const profileData = await api.getUserInfo();
+        renderProfileMenuDetails(profileData.username, profileData.is_guest, state.email, profileData.rank || "Unranked", profileData.xp || 0);
+        const leaderboardData = await api.getLeaderboard();
+        renderLeaderboardView(leaderboardData);
+
+        state.activeGame = profileData.active_game || null;
         switchViewToDashboard();
     } catch (err) {
         console.error("Boot payload sync failed:", err);
@@ -66,6 +82,7 @@ function switchViewToDashboard() { switchView(elements.dashboardContainer); }
 function switchViewToAuth() { switchView(elements.authContainer); }
 
 async function switchViewToSingleplayer() {
+    state.gameMode = GAME_MODES.SINGLEPLAYER;
     if (!state.token) {
         switchViewToAuth();
         setupAuthListeners();
@@ -75,20 +92,45 @@ async function switchViewToSingleplayer() {
     try {
         switchView(elements.singleplayerContainer);
         
-        // Pass our active game state token straight over to our UI layer logic matrix
-        setupSingleplayerWorkspace(state.activeGame);
+        const portal = document.getElementById("active-investigation-portal");
+        const workspace = singleplayerLobbyElements.categorySelectionWorkspace;
+        const title = document.getElementById("singleplayer-view-title");
 
-        // If there is no active game, load the categories choice buttons as usual
-        if (!state.activeGame) {
+        if (state.activeGame) {
+            if (portal) portal.classList.remove("hidden");
+            if (workspace) workspace.classList.add("hidden");
+            if (title) title.textContent = "Active Game Pending";
+            
+            const metaCat = document.getElementById("portal-meta-category");
+            const metaTurns = document.getElementById("portal-meta-turns");
+            if (metaCat) metaCat.textContent = state.activeGame.category;
+            if (metaTurns) metaTurns.textContent = `${state.activeGame.turns_used} / ${state.activeGame.max_questions}`;
+        } else {
+            if (portal) portal.classList.add("hidden");
+            if (workspace) workspace.classList.remove("hidden");
+            if (title) title.textContent = "Select a Category to Start";
+            
+            setupSingleplayerWorkspace();
             const data = await api.fetchCategories();
-            renderCategoryButtons(data.categories, selectCategoryTrigger);
+            renderSingleplayerCategories(data.categories, selectCategoryTrigger);
         }
     } catch (err) {
         alert("Failed to connect to game backend pipeline: " + err.message);
     }
 }
 
-function switchViewToMultiplayer() { switchView(elements.multiplayerContainer); }
+function switchViewToMultiplayer() {
+    state.gameMode = GAME_MODES.MULTIPLAYER;
+    state.gameStage = GAME_STAGES.LOBBY;
+    switchView(elements.multiplayerContainer);
+
+    if (lobbyElements.entrancePortal && lobbyElements.roomLobbyArena) {
+        lobbyElements.entrancePortal.classList.remove("hidden");
+        lobbyElements.roomLobbyArena.classList.add("hidden");
+    }
+    setupMultiplayerActionListeners();
+}
+
 function switchViewToLeaderboard() { switchView(elements.leaderboardContainer); }
 
 async function switchViewToProfile() {
@@ -101,41 +143,49 @@ async function switchViewToProfile() {
     }
 }
 
-function switchViewToMatch() { 
-    switchView(elements.gameContainer); 
-    elements.chatDisplay.innerHTML = "";
-    
+function switchViewToMatch() {
+    switchView(elements.gameContainer);
     setupMatchViewUI();
 }
 
-/**
- * Single-Run Core Event Wireframe Registration
- */
+async function loadLobbyCategoryGridSelections() {
+    try {
+        const data = await api.fetchCategories();
+        const categoryList = data.categories || [];
+
+        renderLobbyCategories(categoryList, (selectedCat) => {
+            state.selectedCategory = selectedCat;
+            socketService.updateRoomSettings(state.roomCode, selectedCat);
+        });
+    } catch (err) {
+        console.error("Failed to sync word banks from database server:", err);
+    }
+}
+
 function setupCoreApplicationListeners() {
     if (window.coreListenersInitialized) return;
     window.coreListenersInitialized = true;
 
-    // 1. Top Navbar Header Dropdown Controls
-    elements.profileMenuBtn.addEventListener("click", (e) => {
-        e.stopPropagation();
-        toggleProfileDropdown();
-    });
+    if (elements.profileMenuBtn) {
+        elements.profileMenuBtn.addEventListener("click", (e) => {
+            e.stopPropagation();
+            toggleProfileDropdown();
+        });
+    }
 
     window.addEventListener("click", (e) => {
-        if (!elements.profileDropdownPanel.classList.contains("hidden")) {
+        if (elements.profileDropdownPanel && !elements.profileDropdownPanel.classList.contains("hidden")) {
             if (!elements.profileDropdownPanel.contains(e.target) && !elements.profileMenuBtn.contains(e.target)) {
                 closeProfileDropdown();
             }
         }
     });
 
-    // 2. Dashboard Hub Navigation Connections
-    elements.menuSingleplayerBtn.addEventListener("click", switchViewToSingleplayer);
-    elements.menuMultiplayerBtn.addEventListener("click", switchViewToMultiplayer);
-    elements.menuLeaderboardBtn.addEventListener("click", switchViewToLeaderboard);
-    elements.menuProfileBtn.addEventListener("click", switchViewToProfile);
+    if (elements.menuSingleplayerBtn) elements.menuSingleplayerBtn.addEventListener("click", switchViewToSingleplayer);
+    if (elements.menuMultiplayerBtn) elements.menuMultiplayerBtn.addEventListener("click", switchViewToMultiplayer);
+    if (elements.menuLeaderboardBtn) elements.menuLeaderboardBtn.addEventListener("click", switchViewToLeaderboard);
+    if (elements.menuProfileBtn) elements.menuProfileBtn.addEventListener("click", switchViewToProfile);
 
-    // 3. Sub-View Centered Navigation Layout Return Flow Mapping
     const backBtnMappings = [
         { id: "singleplayer-back-btn", target: switchViewToDashboard },
         { id: "multiplayer-back-btn", target: switchViewToDashboard },
@@ -151,207 +201,236 @@ function setupCoreApplicationListeners() {
                     resetCategoryLaunchUI();
                     state.selectedCategory = null;
                 }
+                if (mapping.id === "multiplayer-back-btn") {
+                    resetState(GAME_STAGES.LOBBY);
+                }
                 mapping.target();
             });
         }
     });
 
-    // 4. Category Grid Primary Launcher Button Trigger
-    elements.singleplayerLaunchBtn.addEventListener("click", async () => {
-        if (!state.selectedCategory) return;
-        try {
-            elements.singleplayerLaunchBtn.disabled = true;
-            const gameData = await api.startGame(state.selectedCategory);
-            
-            // Prime our runtime tracking session states
-            state.gameId = gameData.game_id;
-            state.category = gameData.category;
-            state.maxQuestions = gameData.max_questions;
-            state.turnsUsed = 0;
-            state.gameStage = gameData.game_stage;
-            state.analysisHistory = null;
+    if (singleplayerLobbyElements.singleplayerLaunchBtn) {
+        singleplayerLobbyElements.singleplayerLaunchBtn.addEventListener("click", () => {
+            if (!state.selectedCategory) return;
+            state.gameMode = GAME_MODES.SINGLEPLAYER;
+            state.gameStage = GAME_STAGES.PLAYING;
+            singleplayerLobbyElements.singleplayerLaunchBtn.disabled = true;
 
-            resetCategoryLaunchUI();
-            state.selectedCategory = null; 
+            socketService.startSingleplayer(state.selectedCategory, (err, response) => {
+                if (err) {
+                    alert("Could not spin up match context: " + err.error);
+                    singleplayerLobbyElements.singleplayerLaunchBtn.disabled = false;
+                    return;
+                }
 
-            switchViewToMatch();
-            updateMetaLabels();
-            appendMessageBubble(
-                "AI", 
-                `I am thinking of an item in the following category: ${state.category}. Begin asking Yes or No questions!`,
-                true);
-        } catch (err) {
-            alert("Could not spin up match context: " + err.message);
-            elements.singleplayerLaunchBtn.disabled = false;
-        }
-    });
+                state.category = state.selectedCategory;
+                resetCategoryLaunchUI();
+                state.selectedCategory = null;
+                switchViewToMatch();
+                synchronizeInputControls();
 
-    // ─── 5. NEW ACTIVE DOSSIER PORTAL EXECUTORS ───
-    elements.portalResumeBtn.addEventListener("click", () => {
-        if (!state.activeGame) return;
+                const category_text = state.category
+                ? state.category.charAt(0).toUpperCase() + state.category.replace("_", " ").slice(1)
+                : "Unknown category";
+                
+                appendResponsiveMessageBubble(
+                    "AI JUDGE",
+                    `I am thinking of an item in the following category: ${category_text}. Begin asking Yes or No questions!`,
+                    "AI",
+                    false
+                );
+            });
+        });
+    }
 
-        // Copy cached data parameters back onto main active runtime variables
-        state.gameId = state.activeGame.game_id;
-        state.category = state.activeGame.category;
-        state.turnsUsed = state.activeGame.turns_used;
-        state.maxQuestions = state.activeGame.max_questions || 20;
-        state.gameStage = "PLAYING"; 
-        state.analysisHistory = null;
+    const portalResumeBtn = document.getElementById("portal-resume-btn");
+    if (portalResumeBtn) {
+        portalResumeBtn.addEventListener("click", () => {
+            if (!state.activeGame) return;
 
-        switchViewToMatch();
-        updateMetaLabels();
+            socketService.resumeSingleplayer(state.activeGame.game_id, (err, response) => {
+                if (err) {
+                    alert("Could not resume game: " + err.error);
+                    return;
+                }
 
-        // Rebuild historical dialogue logs cleanly inside view layout arrays
-        rebuildChatHistoryUI(state.activeGame.chat_history);
-        
-        // Notify user that execution pipeline is back online
-        appendMessageBubble(
-            "AI", 
-            `Investigation re-established! You have ${state.maxQuestions - state.turnsUsed} questions remaining.`,
-            false
-        );
-        setInputsEnabled(true);
-        
-        // Empty out activeGame buffer cache since it's now our main live game
-        state.activeGame = null;
-    });
+                state.gameId = state.activeGame.game_id;
+                state.category = state.activeGame.category;
+                state.turnsUsed = state.activeGame.turns_used;
+                state.maxQuestions = state.activeGame.max_questions || 20;
+                state.gameStage = response.gameStage || GAME_STAGES.PLAYING;
 
-    elements.portalForfeitBtn.addEventListener("click", async () => {
-        if (!state.activeGame) return;
-        const confirmForfeit = confirm("Are you sure you want to forfeit this case? This counts as an automatic loss on your global ranking records!");
-        if (!confirmForfeit) return;
+                switchViewToMatch();
+                synchronizeInputControls();
+                rebuildChatHistoryUI(response.chatHistory);
 
-        try {
-            elements.portalForfeitBtn.disabled = true;
-            const result = await api.abandonGame(state.activeGame.game_id);
-            
-            alert(`Case file closed. The answer was: ${result.secret_answer}`);
-            
-            state.activeGame = null; // Clear out active dossier cache
-            setupSingleplayerWorkspace(null); // Re-render clean slate grid layout
-            
-            // Re-render selection button grid maps
-            const data = await api.fetchCategories();
-            renderCategoryButtons(data.categories, selectCategoryTrigger);
-        } catch (err) {
-            alert("Failed to close case safely: " + err.message);
-        } finally {
-            elements.portalForfeitBtn.disabled = false;
-        }
-    });
+                appendResponsiveMessageBubble(
+                    "AI JUDGE",
+                    `Game re-established! You have ${state.maxQuestions - state.turnsUsed} questions remaining.`,
+                    "AI",
+                    false
+                );
+                state.activeGame = null;
+            });
+        });
+    }
 
-    // ─── 6. NEW MID-GAMEPLAY CONTROLLER ROW ACTIONS ───
-    elements.gamePauseBtn.addEventListener("click", async () => {
-        if (!state.gameId) return;
-        try {
-            setInputsEnabled(false);
-            
+    const portalForfeitBtn = document.getElementById("portal-forfeit-btn");
+    if (portalForfeitBtn) {
+        portalForfeitBtn.addEventListener("click", () => {
+            if (!state.activeGame) return;
+            const confirmForfeit = confirm("Are you sure you want to forfeit this case? This counts as an automatic loss on your global ranking records!");
+            if (!confirmForfeit) return;
+
+            portalForfeitBtn.disabled = true;
+            const targetGameId = state.activeGame.game_id;
+
+            socketService.quitSingleplayer(targetGameId, (err, response) => {
+                portalForfeitBtn.disabled = false;
+
+                if (err) {
+                    alert("Failed to close case safely: " + err.error);
+                    return;
+                }
+
+                alert(`Case file closed. The answer was: ${response.secretAnswer}`);
+                state.activeGame = null;
+                switchViewToSingleplayer();
+            });
+        });
+    }
+
+    if (gameplayElements.pauseBtn) {
+        gameplayElements.pauseBtn.addEventListener("click", () => {
+            if (!state.gameId || state.gameMode === GAME_MODES.MULTIPLAYER) return;
+
             const confirmPause = confirm("Pause and save match for later?");
-            if (!confirmPause) {
-                setInputsEnabled(true);
+            if (!confirmPause) return;
+
+            setInputsEnabled(false);
+
+            socketService.pauseSingleplayer((err) => {
+                if (err) {
+                    alert("Failed to hibernate current match: " + err.error);
+                    synchronizeInputControls();
+                    return;
+                }
+                resetState();
+                boot();
+            });
+        });
+    }
+
+    if (gameplayElements.abandonBtn) {
+        gameplayElements.abandonBtn.addEventListener("click", () => {
+            if (state.gameMode === GAME_MODES.MULTIPLAYER) {
+                const confirmAbandon = confirm("Forfeit multiplayer match? This counts as an instant loss.");
+                if (!confirmAbandon) return;
+                socketService.forfeitMultiplayerMatch(state.roomCode);
                 return;
             }
 
-            await api.pauseGame(state.gameId);
-            
-            resetState();
-            boot();
-        } catch (err) {
-            alert("Failed to hibernate current match: " + err.message);
-            setInputsEnabled(true);
-        }
-    });
+            if (!state.gameId) return;
+            const confirmAbandon = confirm("Abandon match? This will be logged as a loss.");
+            if (!confirmAbandon) return;
 
-    elements.gameAbandonBtn.addEventListener("click", async () => {
-        if (!state.gameId) return;
-        const confirmAbandon = confirm("Abandon match? This will be logged as a loss.");
-        if (!confirmAbandon) return;
-
-        try {
             setInputsEnabled(false);
-            const result = await api.abandonGame(state.gameId);
-            
-            // Reuse your structural end game overlay pipeline to display details cleanly
-            handleGameOverUI("LOSS", result.secret_answer, "You forefeited the match.");
-        } catch (err) {
-            alert("Failed to terminate match: " + err.message);
-            setInputsEnabled(true);
-        }
-    });
 
-    // 7. Session Termination Clean Loops
-    elements.signoutActionBtn.addEventListener("click", () => {
-        state.token = null;
-        state.username = null;
-        state.isGuest = false;
-        state.email = null;
+            socketService.quitSingleplayer(state.gameId, (err, response) => {
+                if (err) {
+                    alert("Failed to terminate match: " + err.error);
+                    synchronizeInputControls();
+                    return;
+                }
+                handleGameOverUI("LOSE", response.secretAnswer, null, true, 0);
+            });
+        });
+    }
 
-        localStorage.removeItem("token");
-        localStorage.removeItem("username");
-        localStorage.removeItem("isGuest");
-        localStorage.removeItem("email");
+    if (elements.signoutActionBtn) {
+        elements.signoutActionBtn.addEventListener("click", () => {
+            state.token = null;
+            state.username = null;
+            state.isGuest = false;
+            state.email = null;
 
-        closeProfileDropdown();
-        resetState();
-        state.analysisHistory = null; 
-        state.activeGame = null;
-        
-        boot();
-    });
+            localStorage.clear();
+
+            disconnectSocket();
+            closeProfileDropdown();
+            resetState();
+            state.analysisHistory = [];
+            state.activeGame = null;
+
+            boot();
+        });
+    }
 }
 
 function setupAuthListeners() {
     if (window.authListenersInitialized) return;
     window.authListenersInitialized = true;
 
-    elements.showLoginBtn.addEventListener("click", () => {
-        activateAuthForm(elements.loginForm);
-        unselectAuthBtns();
-        elements.showLoginBtn.classList.add("btn-chosen");
-    });
-    elements.showSignupBtn.addEventListener("click", () => {
-        activateAuthForm(elements.signupForm);
-        unselectAuthBtns();
-        elements.showSignupBtn.classList.add("btn-chosen");
-    });
-    elements.showGuestBtn.addEventListener("click", () => {
-        activateAuthForm(elements.guestForm);
-        unselectAuthBtns();
-        elements.showGuestBtn.classList.add("btn-chosen");
-    });
+    if (elements.showLoginBtn) {
+        elements.showLoginBtn.addEventListener("click", () => {
+            activateAuthForm(elements.loginForm);
+            unselectAuthBtns();
+            elements.showLoginBtn.classList.add("btn-chosen");
+        });
+    }
+    if (elements.showSignupBtn) {
+        elements.showSignupBtn.addEventListener("click", () => {
+            activateAuthForm(elements.signupForm);
+            unselectAuthBtns();
+            elements.showSignupBtn.classList.add("btn-chosen");
+        });
+    }
+    if (elements.showGuestBtn) {
+        elements.showGuestBtn.addEventListener("click", () => {
+            activateAuthForm(elements.guestForm);
+            unselectAuthBtns();
+            elements.showGuestBtn.classList.add("btn-chosen");
+        });
+    }
 
-    elements.signupForm.addEventListener("submit", async (e) => {
-        e.preventDefault();
-        try {
-            const data = await api.registerUser(
-                document.getElementById("signup-username").value.trim(),
-                document.getElementById("signup-email").value.trim(),
-                document.getElementById("signup-password").value
-            );
-            handleAuthSuccess(data);
-        } catch (err) { showAuthError(err.message); }
-    });
+    if (elements.signupForm) {
+        elements.signupForm.addEventListener("submit", async (e) => {
+            e.preventDefault();
+            try {
+                const data = await api.registerUser(
+                    document.getElementById("signup-username").value.trim(),
+                    document.getElementById("signup-email").value.trim(),
+                    document.getElementById("signup-password").value
+                );
+                handleAuthSuccess(data);
+            } catch (err) { showAuthError(err.message); }
+        });
+    }
 
-    elements.loginForm.addEventListener("submit", async (e) => {
-        e.preventDefault();
-        try {
-            const data = await api.loginUser(
-                document.getElementById("login-identity").value.trim(),
-                document.getElementById("login-password").value
-            );
-            handleAuthSuccess(data);
-        } catch (err) { showAuthError(err.message); }
-    });
+    if (elements.loginForm) {
+        elements.loginForm.addEventListener("submit", async (e) => {
+            e.preventDefault();
+            try {
+                const data = await api.loginUser(
+                    document.getElementById("login-identity").value.trim(),
+                    document.getElementById("login-password").value
+                );
+                handleAuthSuccess(data);
+            } catch (err) { showAuthError(err.message); }
+        });
+    }
 
-    elements.guestForm.addEventListener("submit", async (e) => {
-        e.preventDefault();
-        try {
-            const data = await api.initializeGuestSession(
-                document.getElementById("guest-nickname").value.trim()
-            );
-            handleAuthSuccess(data);
-        } catch (err) { showAuthError(err.message); }
-    });
+    if (elements.guestForm) {
+        elements.guestForm.addEventListener("submit", async (e) => {
+            e.preventDefault();
+            try {
+                const data = await api.initializeGuestSession(
+                    document.getElementById("guest-nickname").value.trim()
+                );
+                handleAuthSuccess(data);
+            } catch (err) { showAuthError(err.message); }
+        });
+    }
 }
 
 function handleAuthSuccess(payload) {
@@ -373,86 +452,191 @@ function selectCategoryTrigger(category) {
     highlightSelectedCategory(category);
 }
 
-// Gameplay Action Form Event Hookups
-elements.questionForm.addEventListener("submit", async (e) => {
-    e.preventDefault();
-    const qText = elements.questionInput.value.trim();
-    if (!qText) return;
+function setupMultiplayerActionListeners() {
+    if (elements.mpCreateBtn) {
+        elements.mpCreateBtn.onclick = async () => {
+            state.gameMode = GAME_MODES.MULTIPLAYER;
+            state.gameStage = GAME_STAGES.LOBBY;
+            state.isHost = true; 
+            
+            socketService.createMultiplayerRoom();
+            await loadLobbyCategoryGridSelections();
+        };
+    }
 
-    elements.questionInput.value = "";
-    appendMessageBubble("USER_QUESTION", qText, false);
-    setInputsEnabled(false);
+    if (elements.mpJoinForm) {
+        elements.mpJoinForm.onsubmit = (e) => {
+            e.preventDefault();
+            const inputEl = document.getElementById("mp-room-code-input");
+            const codeInput = inputEl ? inputEl.value.trim().toUpperCase() : "";
+            if (codeInput.length !== 4) return;
 
-    try {
-        const result = await api.askQuestion(state.gameId, qText);
-        state.turnsUsed = result.turns_used;
-        state.gameStage = result.game_stage;
-        
-        updateMetaLabels();
+            state.gameMode = GAME_MODES.MULTIPLAYER;
+            state.gameStage = GAME_STAGES.LOBBY;
+            state.isHost = false; 
+            
+            socketService.joinMultiplayerRoom(codeInput);
+        };
+    }
 
-        appendMessageBubble("AI", result.response, true);
+    if (lobbyElements.launchBtn) {
+        lobbyElements.launchBtn.onclick = () => {
+            if (!state.isHost || !state.selectedCategory) return;
+            socketService.launchMultiplayerMatch(state.roomCode, state.selectedCategory);
+        };
+    }
+}
 
-        if (state.gameStage === "FINAL_GUESS") {
-            appendMessageBubble(
-                "AI", 
-                "That's all for the Q&A's! Please enter your final guess now!",
-                false
-            );
+async function handleMatchLaunchTriggered() {
+    switchViewToMatch();
+    synchronizeInputControls();
+}
+
+function handleAiResponseProcessed(data) {
+    state.turnsUsed = data.turnsUsed;
+    state.gameStage = data.gameStage;
+    state.currentTurnHolder = data.currentTurnHolder;
+
+    if (!state.analysisHistory) state.analysisHistory = [];
+    state.analysisHistory.push({
+        author: "AI JUDGE",
+        text: data.messageText,
+        analysis: data.analysis || "AI evaluation successfully verified against secret game rules matrix."
+    });
+
+    synchronizeInputControls();
+
+    if (data.gameStage === GAME_STAGES.GAME_OVER) {
+        handleGameOverUI(
+            data.victory ? "WIN" : "LOSE", 
+            data.secretAnswer, 
+            data.winnerUsername,
+            data.forfeit,
+            data.xpEarned || 0
+        );
+    }
+}
+
+async function handleReturnedToLobby(data) {
+    state.players = data.players || state.players;
+    resetMatchState(GAME_STAGES.LOBBY);
+    switchView(elements.multiplayerContainer);
+    renderLobbyView();
+    await loadLobbyCategoryGridSelections();
+}
+
+if (gameplayElements.questionForm) {
+    gameplayElements.questionForm.addEventListener("submit", (e) => {
+        e.preventDefault();
+        const qText = gameplayElements.questionInput.value.trim();
+        if (!qText) return;
+
+        gameplayElements.questionInput.value = "";
+
+        if (state.gameMode === GAME_MODES.SINGLEPLAYER) {
+            appendResponsiveMessageBubble(state.username || "YOU", qText, "USER_QUESTION", false);
+            setInputsEnabled(false);
+
+            socketService.submitSingleplayerTurn("QUESTION", qText, (err, response) => {
+                if (err) {
+                    appendResponsiveMessageBubble("AI JUDGE", "Error: " + err.error, "AI", false);
+                    synchronizeInputControls();
+                    return;
+                }
+
+                if (response.turnsUsed !== undefined) state.turnsUsed = response.turnsUsed;
+                if (response.gameStage !== undefined) state.gameStage = response.gameStage;
+
+                synchronizeInputControls();
+                appendResponsiveMessageBubble("AI JUDGE", response.response, "AI", true);
+
+                if (state.gameStage === GAME_STAGES.FINAL_GUESS) {
+                    appendResponsiveMessageBubble("AI JUDGE", "That's all for the Q&A's! Please enter your final guess now!", "AI", false);
+                }
+                synchronizeInputControls();
+            });
+        } else {
+            setInputsEnabled(false);
+            socketService.submitMultiplayerTurn(state.roomCode, "QUESTION", qText);
         }
-    } catch (err) {
-        appendMessageBubble("AI", "Error: " + err.message, false);
-    } finally { setInputsEnabled(true); }
-});
+    });
+}
 
-elements.guessForm.addEventListener("submit", async (e) => {
-    e.preventDefault();
-    const gText = elements.guessInput.value.trim();
-    if (!gText) return;
+if (gameplayElements.guessForm) {
+    gameplayElements.guessForm.addEventListener("submit", (e) => {
+        e.preventDefault();
+        const gText = gameplayElements.guessInput.value.trim();
+        if (!gText) return;
 
-    elements.guessInput.value = "";
-    appendMessageBubble("USER_GUESS", gText, false);
-    setInputsEnabled(false);
+        gameplayElements.guessInput.value = "";
 
-    try {
-        const result = await api.submitGuess(state.gameId, gText);
-        state.turnsUsed = result.turns_used;
-        state.gameStage = result.game_stage;
+        if (state.gameMode === GAME_MODES.SINGLEPLAYER) {
+            appendResponsiveMessageBubble(state.username || "YOU", gText, "USER_GUESS", false);
+            setInputsEnabled(false);
 
-        updateMetaLabels();
-        appendMessageBubble("AI", `${result.response}`, true);
+            socketService.submitSingleplayerTurn("GUESS", gText, (err, response) => {
+                if (err) {
+                    appendResponsiveMessageBubble("AI JUDGE", "Error: " + err.error, "AI", false);
+                    synchronizeInputControls();
+                    return;
+                }
 
-        if (state.gameStage === "GAME_OVER") {
-            handleGameOverUI(result.game_result, result.secret_answer, result.response);
+                if (response.turnsUsed !== undefined) state.turnsUsed = response.turnsUsed;
+                if (response.gameStage !== undefined) state.gameStage = response.gameStage;
+
+                synchronizeInputControls();
+                appendResponsiveMessageBubble("AI JUDGE", response.response, "AI", true);
+
+                if (state.gameStage === GAME_STAGES.GAME_OVER) {
+                    handleGameOverUI(response.gameResult, response.secretAnswer, response.winnerUsername, response.forfeit, response.xpEarned || 0);
+                } else {
+                    synchronizeInputControls();
+                }
+            });
+        } else {
+            setInputsEnabled(false);
+            socketService.submitMultiplayerTurn(state.roomCode, "GUESS", gText);
         }
-    } catch (err) {
-        appendMessageBubble("AI", "Error: " + err.message, false);
-    } finally { setInputsEnabled(true); }
-});
+    });
+}
 
-elements.analysisToggle.addEventListener("change", async () => {
-    if (elements.analysisToggle.checked) {
-        if (!state.analysisHistory) {
-            try {
-                const logs = await api.fetchAnalysis(state.gameId);
-                state.analysisHistory = logs.chat_history;
-            } catch (err) {
-                alert("Failed fetching analysis layer logs: " + err.message);
-                elements.analysisToggle.checked = false;
+if (gameplayElements.analysisToggle) {
+    gameplayElements.analysisToggle.addEventListener("change", () => {
+        if (gameplayElements.analysisToggle.checked) {
+            if (state.gameMode === GAME_MODES.MULTIPLAYER) {
+                injectReasoningBoxes(state.analysisHistory || []);
                 return;
             }
+
+            if (!state.analysisHistory || state.analysisHistory.length === 0) {
+                socketService.getSingleplayerAnalysis((err, history) => {
+                    if (err) {
+                        alert("Failed fetching analysis layer logs: " + err.error);
+                        gameplayElements.analysisToggle.checked = false;
+                        return;
+                    }
+                    injectReasoningBoxes(history);
+                });
+                return;
+            }
+            injectReasoningBoxes(state.analysisHistory);
+        } else {
+            clearReasoningBoxes();
         }
-        injectReasoningBoxes(state.analysisHistory);
-    } else {
-        clearReasoningBoxes();
-    }
-});
+    });
+}
 
-elements.restartBtn.addEventListener("click", () => {
-    resetState();
-    state.analysisHistory = null;
-    state.activeGame = null;
-    switchViewToSingleplayer();
-});
+if (gameplayElements.restartBtn) {
+    gameplayElements.restartBtn.addEventListener("click", () => {
+        if (state.gameMode === GAME_MODES.MULTIPLAYER) {
+            socketService.returnToLobby(state.roomCode);
+            return; // UI switches when 'returned_to_lobby' arrives for everyone
+        }
+        resetState();
+        state.analysisHistory = [];
+        state.activeGame = null;
+        switchViewToSingleplayer();
+    });
+}
 
-// Document Initialization Bootstrap Hook
 document.addEventListener("DOMContentLoaded", boot);

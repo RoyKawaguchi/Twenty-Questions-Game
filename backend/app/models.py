@@ -1,15 +1,17 @@
 from typing import TypedDict, List, Optional
 from enum import Enum
+from datetime import datetime
 
 # ==========================================
 # 1. ENUMS (Used in Python logic & LLM Parsing)
 # ==========================================
 
 class GameStage(str, Enum):
+    LOBBY = "LOBBY"             # Multiplayer only: waiting in the room pre-match
     PLAYING = "PLAYING"
     FINAL_GUESS = "FINAL_GUESS"
     GAME_OVER = "GAME_OVER"
-    PAUSED = "PAUSED"
+    PAUSED = "PAUSED"           # Singleplayer only
 
 class GameResult(str, Enum):
     WIN = "WIN"
@@ -20,32 +22,50 @@ class GameMode(str, Enum):
     MULTIPLAYER = "MULTIPLAYER"
 
 class EvaluationResponse(str, Enum):
-    YES = "yes"
-    NO = "no"
-    ERROR = "error"
-    CORRECT = "correct"
-    INCORRECT = "incorrect"
+    YES = "Yes"
+    NO = "No"
+    ERROR = "Error"
 
 
 # ==========================================
-# 2. DOCUMENT SCHEMAS (For Documentation & IDE Autocomplete)
+# 2. DOCUMENT SCHEMAS
 # ==========================================
 
 class ChatHistoryItem(TypedDict):
-    type: str          # Stored as "question" or "guess"
-    text: str          # The player's raw string input
-    response: str      # E.g., "Yes.", "No.", "Correct!", "Incorrect."
-    analysis: str      # LLM's raw processing reasoning
+    type: str              # "question" or "guess"
+    text: str              # Player's raw input
+    response: str          # "Yes", "No", "Error", "Correct", "Incorrect"
+    analysis: str          # LLM's raw reasoning text
+    author: Optional[str]  # Multiplayer: username of the player who ran this turn
 
-class GameSession(TypedDict):
-    _id: str           # Unique string ID (UUID4)
-    game_mode: str     # Stored as "SINGLEPLAYER" or "MULTIPLAYER"
-    category: str      # The item's subset category
-    secret_answer: str # The word being guessed
-    turns_used: int    # Current question/guess count
-    error_count: int   # Count of questions resulting in an error
-    max_questions: int # Max allowed attempts (default 20)
-    game_stage: str    # Stored as "PLAYING", "FINAL_GUESS", or "GAME_OVER"
+class RoomPlayer(TypedDict):
+    user_id: str            
+    username: str
+    socket_id: str          # Volatile real-time live connection ID
+    color: str
+    isHost: bool
+    is_guest: bool
+
+class GameSession(TypedDict, total=False):
+    _id: str                # Unique String UUID4
+    game_mode: str           # "SINGLEPLAYER" or "MULTIPLAYER"
+    category: str            
+    secret_answer: str       
+    turns_used: int          
+    error_count: int         
+    max_questions: int       
+    game_stage: str          
     chat_history: List[ChatHistoryItem]
-    game_result: Optional[str] # Stored as "WIN", "LOSE", or None
-    created_at: str    # ISO datetime string for database TTL tracking
+    game_result: Optional[str]  
+    created_at: datetime     # MongoDB TTL tracking expects datetime object
+
+    # ─── SINGLEPLAYER FIELDS ───
+    user_id: str
+    username: str
+    is_guest: bool
+
+    # ─── MULTIPLAYER FIELDS ───
+    room_code: str
+    players: List[RoomPlayer]
+    current_turn_holder: str    # Username string
+    winner_username: Optional[str]
