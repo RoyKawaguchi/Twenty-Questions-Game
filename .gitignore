@@ -16,5 +16,5 @@ android_client/*.iml
 Thumbs.db
 
 # Roy
-roy_stuff/
+.roy_stuff/
 files/

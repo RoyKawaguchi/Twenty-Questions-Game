@@ -10,12 +10,15 @@ export const elements = {
     leaderboardContainer: document.getElementById("leaderboard-container"),
     profileContainer: document.getElementById("profile-container"),
     gameContainer: document.getElementById("game-container"),
+    aboutContainer: document.getElementById("about-container"),
 
     // Global Menu Layout Buttons
     menuSingleplayerBtn: document.getElementById("menu-singleplayer-btn"),
     menuMultiplayerBtn: document.getElementById("menu-multiplayer-btn"),
     menuLeaderboardBtn: document.getElementById("menu-leaderboard-btn"),
     menuProfileBtn: document.getElementById("menu-profile-btn"),
+    contactUsBtn: document.getElementById("contact-us-btn"),
+    aboutBtn: document.getElementById("about-btn"),
     
     // Auth Forms & Indicators
     showLoginBtn: document.getElementById("show-login-btn"),
@@ -46,6 +49,9 @@ export const elements = {
 
     // Leaderboard View Elements
     leaderboardList: document.getElementById("leaderboard-list"),
+
+    // About View Elements
+    aboutContent: document.getElementById("about-content"),
 
     // Multiplayer Gateway Submits
     mpCreateBtn: document.getElementById("mp-create-room-btn"),

@@ -240,7 +240,7 @@ def get_leaderboard(current_user):
             avg_turns, rank_tier, _ = calculate_singleplayer_analytics(history)
             xp = user_doc.get("xp")
 
-            # Only include competitive players who have unlocked a valid rank tier (min 5 games)
+            # Only include competitive players who have unlocked a valid rank tier (min 3 games)
             if rank_tier != "-":
                 leaderboard_entries.append({
                     "username": user_doc["username"],
@@ -266,6 +266,11 @@ def calculate_singleplayer_analytics(history):
     """
     Computes analytics across a user's singleplayer match history.
     Unifies scoring rules between the profile view and the global leaderboard.
+
+    Ranking rules:
+    - Fewer than 3 games: Unranked
+    - 3-4 games: Based on all available recent games
+    - 5+ games: Based only on the last 5 games
     """
     total_games = len(history)
     wins = [game for game in history if game.get("result") == "WIN"]
@@ -274,17 +279,26 @@ def calculate_singleplayer_analytics(history):
     # Calculate global win rate
     win_rate = int((total_wins / total_games) * 100) if total_games > 0 else 0
 
-    # Sort wins descending by timestamp to target recent achievements
-    sorted_wins = sorted(wins, key=lambda x: x.get("played_at") or datetime.datetime.min, reverse=True)
-    recent_wins = sorted_wins[:5]  # Evaluates the past 5 single player wins
+    # Sort all games by most recent
+    sorted_games = sorted(
+        history,
+        key=lambda x: x.get("played_at") or datetime.datetime.min,
+        reverse=True
+    )
 
-    if recent_wins:
-        avg_turns = round(sum(game["turns_used"] for game in recent_wins) / len(recent_wins), 1)
+    # Use up to the last 5 games (or all games if there are only 3-4)
+    recent_games = sorted_games[:5]
+
+    if total_games >= 3:
+        avg_turns = round(
+            sum(game["turns_used"] for game in recent_games) / len(recent_games),
+            1
+        )
     else:
         avg_turns = 0.0
 
     # Evaluate dynamic rank thresholds
-    if not recent_wins or total_games < 5:
+    if total_games < 3:
         rank_tier = "-"
     elif avg_turns <= 7.0:
         rank_tier = "S"

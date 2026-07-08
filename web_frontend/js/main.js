@@ -18,6 +18,7 @@ import {
     singleplayerLobbyElements, setupSingleplayerWorkspace,
     renderSingleplayerCategories, highlightSelectedCategory, resetCategoryLaunchUI
 } from './views/singleplayerLobbyView.js';
+import { renderAboutView } from './views/aboutView.js';
 
 function switchView(targetContainer) {
     const containers = [
@@ -27,7 +28,8 @@ function switchView(targetContainer) {
         elements.multiplayerContainer,
         elements.leaderboardContainer,
         elements.profileContainer,
-        elements.gameContainer
+        elements.gameContainer,
+        elements.aboutContainer,
     ];
 
     containers.forEach(container => {
@@ -143,6 +145,17 @@ async function switchViewToProfile() {
     }
 }
 
+function switchViewToContactUs() {
+    const contactUsUrl = "https://forms.office.com/Pages/ResponsePage.aspx?id=74FucSK1c0SOMRC9Asz25S6YC81q8MhLkNet_nLcVbJUQkY2Q0cwUlU1SjBMMUwyWFdCS0RDN0FQRC4u"; 
+    window.open(contactUsUrl, "_blank");
+}
+
+function switchViewToAbout() {
+    console.log("Switching to About view...");
+    switchView(elements.aboutContainer);
+    renderAboutView();
+}
+
 function switchViewToMatch() {
     switchView(elements.gameContainer);
     setupMatchViewUI();
@@ -185,12 +198,15 @@ function setupCoreApplicationListeners() {
     if (elements.menuMultiplayerBtn) elements.menuMultiplayerBtn.addEventListener("click", switchViewToMultiplayer);
     if (elements.menuLeaderboardBtn) elements.menuLeaderboardBtn.addEventListener("click", switchViewToLeaderboard);
     if (elements.menuProfileBtn) elements.menuProfileBtn.addEventListener("click", switchViewToProfile);
+    if (elements.contactUsBtn) elements.contactUsBtn.addEventListener("click", switchViewToContactUs);
+    if (elements.aboutBtn) elements.aboutBtn.addEventListener("click", switchViewToAbout);
 
     const backBtnMappings = [
         { id: "singleplayer-back-btn", target: switchViewToDashboard },
         { id: "multiplayer-back-btn", target: switchViewToDashboard },
         { id: "leaderboard-back-btn", target: switchViewToDashboard },
-        { id: "profile-back-btn", target: switchViewToDashboard }
+        { id: "profile-back-btn", target: switchViewToDashboard },
+        { id: "about-back-btn", target: switchViewToDashboard },
     ];
 
     backBtnMappings.forEach(mapping => {
