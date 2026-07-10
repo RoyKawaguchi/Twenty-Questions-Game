@@ -56,6 +56,22 @@ p {
     color: var(--text-muted);
 }
 
+.welcome-text {
+    margin: 0.75rem 0 0.5rem;
+    font-size: 1.05rem;
+    line-height: 1.7;
+    color: rgba(255, 255, 255, 0.92);
+    font-weight: 500;
+}
+
+.welcome-subtext {
+    margin: 0;
+    font-size: 0.95rem;
+    line-height: 1.6;
+    color: rgba(255, 255, 255, 0.7);
+    max-width: 32rem;
+}
+
 a {
     color: var(--primary);
 }

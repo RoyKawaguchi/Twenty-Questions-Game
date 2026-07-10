@@ -267,6 +267,10 @@ export function handleGameOverUI(result, secretAnswer, winnerUsername = null, fo
     const activeXp = isWin ? xpEarned : 0;
     finalMessage += ` You earned ${activeXp} XP!`;
 
+    if (state.isGuest) {
+        finalMessage += " (Guest accounts do not save XP.)";
+    }
+
     // --- 4. UI DOM MANIPULATIONS ---
     if (gameplayElements.endStatusHeading) gameplayElements.endStatusHeading.textContent = headingText;
     if (gameplayElements.endMessageText) gameplayElements.endMessageText.textContent = finalMessage;

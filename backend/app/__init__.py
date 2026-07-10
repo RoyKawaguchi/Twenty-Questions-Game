@@ -4,23 +4,21 @@ from flask import Flask, jsonify
 from flask_cors import CORS
 from flask_socketio import SocketIO
 
-from app.config import config  # Import the pre-validated config instance directly
+from dotenv import load_dotenv
+base_dir = os.path.abspath(os.path.dirname(os.path.dirname(__file__)))
+env_path = os.path.join(base_dir, ".env")
+if os.path.exists(env_path):
+    load_dotenv(env_path)
+
+from app.config import config 
 from app.database import db_wrapper
 
-# Initialize SocketIO globally for file importing across routing architectures
 socketio = SocketIO()
 
 def create_app():
-    base_dir = os.path.abspath(os.path.dirname(os.path.dirname(__file__)))
-    env_path = os.path.join(base_dir, ".env")
-    
-    from dotenv import load_dotenv
-    if os.path.exists(env_path):
-        load_dotenv(env_path)
-
     app = Flask(__name__)
     
-    # Run structural validations
+    # Run structural validations (Will instantly crash here if a key is missing)
     config.validate()
     
     # Bind environment keys cleanly to Flask core config space
@@ -29,7 +27,7 @@ def create_app():
         OPENAI_API_KEY=config.OPENAI_API_KEY,
         FLASK_ENV=config.FLASK_ENV,
         JWT_SECRET_KEY=config.JWT_SECRET_KEY,
-        SECRET_KEY=config.JWT_SECRET_KEY  # Required for session signature configurations
+        SECRET_KEY=config.JWT_SECRET_KEY  
     )
 
     # Load static word lists

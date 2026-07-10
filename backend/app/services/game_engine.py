@@ -41,8 +41,9 @@ def create_game_session(category, game_mode, user=None, room_code=None, players=
 
     words_list = categories_dict[category]["words"]
     secret_answer = random.choice(words_list)
-    # TODO: delete this
-    print("secret_answer = ", secret_answer)
+    
+    # UNCOMMENT FOR TESTING
+    # print("secret_answer = ", secret_answer)
     max_questions = get_max_questions()
     game_id = str(uuid.uuid4())
 

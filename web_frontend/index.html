@@ -59,7 +59,8 @@
 
         <main id="auth-container" class="card">
             <h2>Hey there!</h2>
-            <p class="auth-subtitle">Sign in to track high scores, or play instantly as a guest!</p>
+            <p class="welcome-text">Welcome to ::twenty, a cutting edge AI-guessing game!</p>
+            <p class="welcome-subtext">Sign in to track high scores, or play instantly as a guest!</p>
             
             <div class="auth-actions-row">
                 <button id="show-login-btn" class="btn btn-primary">Login</button>
@@ -114,7 +115,7 @@
                 <button id="menu-multiplayer-btn" class="btn btn-secondary menu-btn">Multiplayer</button>
                 <button id="menu-leaderboard-btn" class="btn btn-accent menu-btn">Leaderboard</button>
                 <button id="menu-profile-btn" class="btn btn-outline menu-btn">My Profile</button>
-                <button id="contact-us-btn" class="btn btn-accent menu-btn">Contact Us</button>
+                <button id="contact-us-btn" class="btn btn-accent menu-btn">Contact Us (Microsoft Form)</button>
                 <button id="about-btn" class="btn btn-outline menu-btn">About Game</button>
             </div>
         </main>
@@ -207,7 +208,7 @@
                         </div>
                         
                         <div class="lobby-action-row" style="margin-top: 24px;">
-                            <button id="mp-launch-match-btn" class="btn btn-accent full-width" style="width: 100%; padding: 14px;" disabled>Launch Investigation Arena</button>
+                            <button id="mp-launch-match-btn" class="btn btn-accent full-width" style="width: 100%; padding: 14px;" disabled>Launch Game Arena</button>
                         </div>
                     </div>
                 </div>
@@ -217,6 +218,7 @@
         <main id="leaderboard-container" class="card hidden">
             <div class="view-header">
                 <h2>Global Leaderboards</h2>
+                <h5>(by Recent Average Turns Used)</h5>
                 <button class="btn btn-primary btn-back" id="leaderboard-back-btn">← Back to Menu</button>
             </div>
             <div id="leaderboard-list" class="leaderboard-list-wrapper">

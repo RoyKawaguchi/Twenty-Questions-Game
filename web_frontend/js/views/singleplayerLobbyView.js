@@ -86,7 +86,7 @@ export function highlightSelectedCategory(category) {
         if (singleplayerLobbyElements.singleplayerLaunchBtn) {
             singleplayerLobbyElements.singleplayerLaunchBtn.disabled = false;
             singleplayerLobbyElements.singleplayerLaunchBtn.classList.remove("disabled");
-            singleplayerLobbyElements.singleplayerLaunchBtn.textContent = "🚀 Launch Investigation";
+            singleplayerLobbyElements.singleplayerLaunchBtn.textContent = "🚀 Launch Game";
         }
     } else {
         resetCategoryLaunchUI();

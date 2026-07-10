@@ -41,7 +41,7 @@ class Database:
     def _ensure_ttl_indices(self):
         """Creates background index that drops session documents after 24 hours.
         
-        CRITICAL: Requires fields mapped to this index to be serialized as BSON datetimes.
+        Requires fields mapped to this index to be serialized as BSON datetimes.
         """
         if self.db is not None:
             self.db.game_sessions.create_index(

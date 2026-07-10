@@ -1,3 +1,0 @@
-BUGS
-
-- the defeat message for forfeit of multiplayer

@@ -123,7 +123,6 @@ def login():
         "email": user_doc.get("email", "")
     }), 200
 
-
 @auth_bp.route('/guest', methods=['POST'])
 def guest_login():
     """Creates a zero-commitment guest session with an optionally customized gaming tag."""
@@ -174,8 +173,7 @@ def get_user_info(current_user):
 
         history = user_doc.get("history_singleplayer", [])
         
-        # ✨ MODULARIZED: Swapped out legacy manual calculations for our helper
-        avg_turns, rank_tier, win_rate = calculate_singleplayer_analytics(history)
+        avg_turns, rank_tier, win_rate = _calculate_singleplayer_analytics(history)
 
         # Separate mapping tracking to preserve mutation isolation rules
         processed_singleplayer = []
@@ -237,7 +235,7 @@ def get_leaderboard(current_user):
 
         for user_doc in users_cursor:
             history = user_doc.get("history_singleplayer", [])
-            avg_turns, rank_tier, _ = calculate_singleplayer_analytics(history)
+            avg_turns, rank_tier, _ = _calculate_singleplayer_analytics(history)
             xp = user_doc.get("xp")
 
             # Only include competitive players who have unlocked a valid rank tier (min 3 games)
@@ -262,7 +260,7 @@ def get_leaderboard(current_user):
         current_app.logger.error(f"Error compiling global leaderboard metrics: {str(e)}")
         return jsonify({"error": "Internal server error processing leaderboard records."}), 500
 
-def calculate_singleplayer_analytics(history):
+def _calculate_singleplayer_analytics(history):
     """
     Computes analytics across a user's singleplayer match history.
     Unifies scoring rules between the profile view and the global leaderboard.

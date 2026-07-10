@@ -65,6 +65,20 @@ export async function initializeGuestSession(nickname) {
     return data;
 }
 
+// =====================================================================
+// STATIC REFERENCE DATA 
+// =====================================================================
+
+export async function fetchCategories() {
+    const response = await fetch(`${GAME_BASE_URL}/categories`, {
+        method: 'GET',
+        headers: getAuthenticatedHeaders()
+    });
+    if (!response.ok) throw new Error("Failed to load categories.");
+
+    return await response.json(); // Returns { categories: [...] }
+}
+
 export async function getUserInfo() {
     const response = await fetch(`${AUTH_BASE_URL}/user_info`, {
         method: "GET",
@@ -92,22 +106,3 @@ export async function getLeaderboard() {
 
     return await response.json();
 }
-
-// =====================================================================
-// STATIC REFERENCE DATA (kept on REST — no need for a live socket round-trip)
-// =====================================================================
-
-export async function fetchCategories() {
-    const response = await fetch(`${GAME_BASE_URL}/categories`, {
-        method: 'GET',
-        headers: getAuthenticatedHeaders()
-    });
-    if (!response.ok) throw new Error("Failed to load categories.");
-
-    return await response.json(); // Returns { categories: [...] }
-}
-
-// NOTE: All gameplay actions (start/question/guess/pause/resume/quit/analysis,
-// for both singleplayer and multiplayer) have moved to socket.js — see the
-// sp_* and multiplayer events wired up there. This keeps REST scoped to
-// authentication + static reference data only.
