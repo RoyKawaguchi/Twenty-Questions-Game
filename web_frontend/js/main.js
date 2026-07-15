@@ -67,10 +67,10 @@ async function boot() {
     });
 
     try {
+        refreshLeaderboard();
+        refreshProfileMenu();
+
         const profileData = await api.getUserInfo();
-        renderProfileMenuDetails(profileData.username, profileData.is_guest, state.email, profileData.rank || "Unranked", profileData.xp || 0);
-        const leaderboardData = await api.getLeaderboard();
-        renderLeaderboardView(leaderboardData);
 
         state.activeGame = profileData.active_game || null;
         switchViewToDashboard();
@@ -78,6 +78,16 @@ async function boot() {
         console.error("Boot payload sync failed:", err);
         switchViewToDashboard();
     }
+}
+
+async function refreshLeaderboard() {
+    const leaderboardData = await api.getLeaderboard();
+    renderLeaderboardView(leaderboardData);
+}
+
+async function refreshProfileMenu() {
+    const profileData = await api.getUserInfo();
+    renderProfileMenuDetails(profileData.username, profileData.is_guest, state.email, profileData.rank || "Unranked", profileData.xp || 0);
 }
 
 function switchViewToDashboard() { switchView(elements.dashboardContainer); }
@@ -282,7 +292,7 @@ function setupCoreApplicationListeners() {
 
                 appendResponsiveMessageBubble(
                     "AI JUDGE",
-                    `Game re-established! You have ${state.maxQuestions - state.turnsUsed} questions remaining.`,
+                    `Game re-established! You have ${state.maxQuestions - state.turnsUsed} questions remaining. Category: ${state.category.charAt(0).toUpperCase() + state.category.replace("_", " ").slice(1)}. Begin asking Yes or No questions!`,
                     "AI",
                     false
                 );
@@ -644,6 +654,8 @@ if (gameplayElements.analysisToggle) {
 
 if (gameplayElements.restartBtn) {
     gameplayElements.restartBtn.addEventListener("click", () => {
+        refreshLeaderboard();
+        refreshProfileMenu();
         if (state.gameMode === GAME_MODES.MULTIPLAYER) {
             socketService.returnToLobby(state.roomCode);
             return; // UI switches when 'returned_to_lobby' arrives for everyone

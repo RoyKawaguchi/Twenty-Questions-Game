@@ -232,8 +232,8 @@ export function renderUserProfileView(data) {
     if (elements.profileRankNote) {
         if (data.is_guest) {
             elements.profileRankNote.textContent = "Create an account to be ranked!";
-        } else if (!data.history_singleplayer || data.history_singleplayer.length < 5) {
-            elements.profileRankNote.textContent = "Play at least 5 matches to be ranked!";
+        } else if (!data.history_singleplayer || data.history_singleplayer.length < 3) {
+            elements.profileRankNote.textContent = "Play at least 3 matches to be ranked!";
         } else {
             elements.profileRankNote.textContent = "Rank updated daily based on global performance metric indices.";
         }
