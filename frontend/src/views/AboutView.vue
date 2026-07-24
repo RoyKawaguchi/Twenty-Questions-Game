@@ -192,24 +192,20 @@ import { RouterLink } from 'vue-router'
               <li>MongoDB</li>
               <li>OpenAI API</li>
             </ul>
-            <p class="tech-description">
-              Single-page Vue architecture handles client-side state management and view rendering.
-            </p>
-            <p class="tech-description">
-              Python's Flask backend service manages match states, turn limits, game logic
-              execution, player-stats calculation, and more.
-            </p>
-            <p class="tech-description">
-              WebSocket handles real-time turn rotation and multiplayer lobby synchronization.
-            </p>
-            <p class="tech-description">
-              MongoDB Atlas stores all user record including past game sessions. Also utilizes TTL
-              indexes for automated cleanup for abandoned games.
-            </p>
-            <p class="tech-description">
-              LLM prompt pipelines using OpenAI API (GPT-4o-mini)for question evaluation and
-              semantic verification of guesses.
-            </p>
+            <ul class="step-list">
+              <li>
+                Single-page Vue.js frontend handling client-side state management, routing, and
+                interactive UI rendering.
+              </li>
+              <li>
+                Flask backend manages authentication, game logic, match state, player analytics, and
+                real-time multiplayer synchronization via WebSockets.
+              </li>
+              <li>
+                MongoDB Atlas stores user and game data with TTL cleanup for abandoned sessions,
+                while the OpenAI API provides semantic evaluation of player guesses.
+              </li>
+            </ul>
           </div>
 
           <!-- ABOUT CREATOR -->
@@ -231,7 +227,7 @@ import { RouterLink } from 'vue-router'
               rel="noopener noreferrer"
               class="github-btn"
             >
-              <svg class="github-icon" viewBox="0 0 24 24" width="20" height="20">
+              <svg class="github-icon" viewBox="0 0 24 24" width="25" height="25">
                 <path
                   fill="currentColor"
                   d="M12 0C5.37 0 0 5.37 0 12c0 5.31 3.435 9.795 8.205 11.385.6.105.825-.255.825-.57 0-.285-.015-1.23-.015-2.235-3.015.555-3.795-.735-4.035-1.41-.135-.345-.72-1.41-1.23-1.695-.42-.225-1.02-.78-.015-.795.945-.015 1.62.87 1.845 1.23 1.08 1.815 2.805 1.305 3.495.99.105-.78.42-1.305.765-1.605-2.67-.3-5.46-1.335-5.46-5.925 0-1.305.465-2.385 1.23-3.225-.12-.3-.54-1.53.12-3.18 0 0 1.005-.315 3.3 1.23.96-.27 1.98-.405 3-.405s2.04.135 3 .405c2.295-1.56 3.3-1.23 3.3-1.23.66 1.65.24 2.88.12 3.18.765.84 1.23 1.905 1.23 3.225 0 4.605-2.805 5.625-5.475 5.925.435.375.81 1.095.81 2.22 0 1.605-.015 2.895-.015 3.3 0 .315.225.69.825.57A12.02 12.02 0 0024 12c0-6.63-5.37-12-12-12z"
@@ -247,11 +243,6 @@ import { RouterLink } from 'vue-router'
 </template>
 
 <style scoped>
-.custom-link {
-  color: rgb(0, 102, 204);
-  font-weight: bold;
-  text-decoration: underline;
-}
 /* GENERAL LAYOUT */
 .about-container {
   min-height: 100vh;
@@ -454,7 +445,7 @@ import { RouterLink } from 'vue-router'
   border-radius: 8px;
   text-decoration: none;
   font-weight: 600;
-  font-size: 0.9rem;
+  font-size: 1rem;
   transition: background-color 0.2s ease;
 }
 

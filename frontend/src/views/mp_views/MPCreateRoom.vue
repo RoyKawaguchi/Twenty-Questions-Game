@@ -61,87 +61,110 @@ onMounted(async () => {
   initializeSocketConnection()
 })
 </script>
-
 <template>
-  <div class="lobby">
-    <h1>Multiplayer Portal</h1>
+  <div class="lobby-container">
+    <div class="lobby-card">
+      <h1>Multiplayer Lobby</h1>
+      <p class="subtitle">Create a room to host a game or join a friend's room using a code.</p>
 
-    <!-- Create Room Section -->
-    <section class="card">
-      <h2>Create Room</h2>
-      <p>Create a new multiplayer room and invite your friends.</p>
+      <div class="lobby-grid">
+        <!-- Create Room -->
+        <section class="card">
+          <h2>Create Room</h2>
+          <p>Create a new multiplayer room and invite your friends.</p>
 
-      <button @click="createRoom" :disabled="isLoading">
-        {{ isLoading ? 'Creating...' : 'Create Room' }}
-      </button>
-    </section>
+          <button class="play-btn" @click="createRoom" :disabled="isLoading">
+            {{ isLoading ? 'Creating...' : 'Create Room' }}
+          </button>
+        </section>
 
-    <!-- Join Room Section -->
-    <section class="card">
-      <h2>Join Room</h2>
-      <p>Enter a room code provided by the host.</p>
+        <!-- Join Room -->
+        <section class="card">
+          <h2>Join Room</h2>
+          <input
+            v-model="roomCode"
+            type="text"
+            maxlength="4"
+            placeholder="ABCD"
+            @keyup.enter="joinRoom"
+          />
 
-      <input
-        v-model="roomCode"
-        type="text"
-        maxlength="6"
-        placeholder="ABC123"
-        @keyup.enter="joinRoom"
-      />
-
-      <button @click="joinRoom" :disabled="isLoading">Join Room</button>
-
-      <!-- Tip:
-           You can automatically uppercase the input by adding
-           text-transform: uppercase in CSS. The script already
-           converts it before sending to the server. -->
-    </section>
+          <button class="play-btn" @click="joinRoom" :disabled="isLoading">Join Room</button>
+        </section>
+      </div>
+    </div>
   </div>
 </template>
 
 <style scoped>
-.lobby {
-  max-width: 500px;
-  margin: 3rem auto;
-  padding: 1rem;
+.lobby-container {
+  min-height: calc(100vh - 250px);
   display: flex;
-  flex-direction: column;
-  gap: 2rem;
-  font-family: Arial, Helvetica, sans-serif;
+  justify-content: center;
+  align-items: center;
+}
+
+.lobby-card {
+  width: min(900px, 100%);
+  background: #fafafa;
+  border: 1px solid #ddd;
+  border-radius: 16px;
+  padding: 2rem;
+  text-align: center;
+}
+
+.lobby-card h1 {
+  margin-top: 0;
+  margin-bottom: 0.4rem;
+}
+
+.subtitle {
+  color: #666;
+  margin-top: 1rem;
+  margin-bottom: 2rem;
+}
+
+.lobby-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+  gap: 1.5rem;
 }
 
 .card {
   border: 1px solid #ddd;
-  border-radius: 10px;
+  border-radius: 12px;
   padding: 1.5rem;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
 }
 
-h1 {
-  text-align: center;
+.card h2 {
+  margin-top: 1.25rem;
+  margin-bottom: 1rem;
 }
 
-h2 {
-  margin-top: 0;
+.card p {
+  color: #666;
+  margin-top: 0rem;
+  margin-bottom: 1rem;
 }
 
 input {
   width: 100%;
-  padding: 0.75rem;
-  margin: 1rem 0;
-  font-size: 1rem;
   box-sizing: border-box;
+  padding: 0.75rem;
+  margin-bottom: 1rem;
+  font-size: 1rem;
   text-transform: uppercase;
 }
 
-button {
+.play-btn {
   width: 100%;
-  padding: 0.8rem;
-  font-size: 1rem;
-  cursor: pointer;
 }
 
 button:disabled {
-  cursor: not-allowed;
   opacity: 0.6;
+  cursor: not-allowed;
 }
 </style>

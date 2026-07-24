@@ -5,7 +5,6 @@ import { useAuthStore } from '../../stores/authStore.js'
 import { useRoomStore } from '../../stores/roomStore.js'
 import { useGameStore } from '../../stores/gameStore.js'
 import { socketService } from '../../services/socket.js'
-import { PLAYER_COLORS, PLAYER_COLOR_ORDER } from '../../constants/playerColors.js'
 
 import PlayerList from '../../components/lobby/PlayerList.vue'
 import CategorySelector from '../../components/lobby/CategorySelector.vue'
@@ -126,19 +125,21 @@ function handleBeforeUnload(event) {
       />
     </div>
 
-    <div class="action-footer">
-      <button class="play-btn" :disabled="!canStartGame" @click="startGame">START GAME</button>
+    <div class="lobby-footer">
+      <ColorSelector
+        :players="players"
+        :currentUsername="authStore.username"
+        @selectColor="handleColorSelect"
+      />
 
-      <p class="status-hint" :class="{ ready: canStartGame }">
-        {{ startButtonHint }}
-      </p>
+      <div class="action-footer">
+        <button class="play-btn" :disabled="!canStartGame" @click="startGame">START GAME</button>
+
+        <p class="status-hint" :class="{ ready: canStartGame }">
+          {{ startButtonHint }}
+        </p>
+      </div>
     </div>
-
-    <ColorSelector
-      :players="players"
-      :currentUsername="authStore.username"
-      @selectColor="handleColorSelect"
-    />
   </div>
 </template>
 
@@ -152,9 +153,9 @@ function handleBeforeUnload(event) {
 .lobby-main {
   display: grid;
   grid-template-columns: 1fr 1fr;
-  gap: 2rem;
+  gap: 1rem;
+  margin: 0rem 0;
   align-items: stretch;
-  margin: 2rem 0;
 }
 
 .lobby-container {
@@ -165,26 +166,28 @@ function handleBeforeUnload(event) {
 
 .room-header {
   display: flex;
-  flex-direction: column;
+  justify-content: space-between;
   align-items: center;
-  gap: 1rem;
-  margin-bottom: 2rem;
-  padding: 1.5rem;
-  background: #f0fdf4; /* Light green tint to feel like a successful lobby */
-  border: 2px dashed #4ade80;
-  border-radius: 16px;
+
+  padding: 0.25rem 2rem;
+  margin-bottom: 0rem;
+
+  background: #fafafa;
+  border: 1px solid #ddd;
+  border-radius: 12px;
 }
 
 .room-header h2 {
   margin: 0;
-  font-size: 2rem;
-  letter-spacing: 2px;
+  font-size: 1.35rem;
+  letter-spacing: 1px;
 }
 
 .copy-btn {
   background: white;
   border: 1px solid #ccc;
   padding: 0.5rem 1rem;
+  margin-left: 1rem;
   border-radius: 8px;
   cursor: pointer;
   font-weight: bold;
@@ -196,19 +199,19 @@ function handleBeforeUnload(event) {
 }
 
 .action-footer {
-  margin-top: 3rem;
+  margin-top: 0rem;
   text-align: center;
 }
 
 .action-footer {
-  margin: 1.5rem 0;
+  margin: 0rem 0;
   text-align: center;
 }
 
 /* Inherits your global .play-btn */
 
 .status-hint {
-  margin-top: 1rem;
+  margin-top: 0.5rem;
   color: #666;
   font-size: 0.9rem;
   font-weight: 500;
@@ -216,5 +219,30 @@ function handleBeforeUnload(event) {
 
 .status-hint.ready {
   color: #16a34a; /* Green text when ready */
+}
+
+.lobby-footer {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1rem;
+  margin-top: 0rem;
+  align-items: stretch;
+}
+
+.action-footer {
+  background: #fafafa;
+  border: 1px solid #ddd;
+  border-radius: 12px;
+  padding: 1rem;
+
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+}
+
+.action-footer .play-btn {
+  width: 100%;
+  max-width: 320px;
 }
 </style>

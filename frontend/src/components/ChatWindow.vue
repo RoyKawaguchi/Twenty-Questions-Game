@@ -111,7 +111,7 @@ watch(() => [props.messages, props.isLoading], scrollToBottom, { deep: true })
 <style scoped>
 .chat-window {
   flex: 1;
-  min-height: 60vh;
+  min-height: 50vh;
   overflow-y: auto;
   padding: 1.5rem 1rem;
   display: flex;

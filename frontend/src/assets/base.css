@@ -49,3 +49,9 @@ button {
 .btn-danger:hover {
   background: #a70000 !important;
 }
+
+.custom-link {
+  color: rgb(0, 102, 204);
+  font-weight: bold;
+  text-decoration: underline;
+}

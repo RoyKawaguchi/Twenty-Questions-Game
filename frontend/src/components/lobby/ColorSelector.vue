@@ -39,7 +39,7 @@ const handleColorSelect = (colorId) => {
 
 <template>
   <div class="color-selector">
-    <h3>Select Your Color</h3>
+    <h5><em>Select Your Color</em></h5>
 
     <div class="color-grid">
       <button
@@ -62,18 +62,17 @@ const handleColorSelect = (colorId) => {
 
 <style scoped>
 .color-selector {
-  margin-top: 2rem;
   background: #fafafa;
-  padding: 1.5rem;
+  padding: 1rem;
   border-radius: 12px;
   border: 1px solid #eee;
   text-align: center;
 }
 
-.color-selector h3 {
+.color-selector h5 {
   margin-top: 0;
-  margin-bottom: 1rem;
-  color: #333;
+  margin-bottom: 0.7rem;
+  color: grey;
 }
 
 .color-grid {
@@ -87,8 +86,8 @@ const handleColorSelect = (colorId) => {
   position: relative;
   overflow: hidden;
 
-  width: 38px;
-  height: 38px;
+  width: 30px;
+  height: 30px;
   border-radius: 50%;
   border: 3px solid transparent;
 

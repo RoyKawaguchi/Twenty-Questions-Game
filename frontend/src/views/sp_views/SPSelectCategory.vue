@@ -63,13 +63,6 @@ function forfeitGame() {
 
 onMounted(async () => {
   try {
-    const data = await fetchCategories()
-    categories.value = data.categories || []
-  } catch (error) {
-    console.error('Failed to load categories', error)
-  }
-
-  try {
     initializeSocketConnection()
 
     const data = await getUserInfo()
@@ -79,6 +72,13 @@ onMounted(async () => {
     }
   } catch (error) {
     console.error('Failed to load user info', error)
+  }
+
+  try {
+    const data = await fetchCategories()
+    categories.value = data.categories || []
+  } catch (error) {
+    console.error('Failed to load categories', error)
   }
 })
 </script>
@@ -106,9 +106,9 @@ onMounted(async () => {
       <button class="btn-danger" @click="forfeitGame">Forfeit Game</button>
     </div>
 
-    <template v-else>
+    <div v-else class="lobby-card">
       <h1>Singleplayer Lobby</h1>
-      <p>Choose a category to begin.</p>
+      <p class="subtitle">Select a category to begin your game.</p>
 
       <div class="category-grid">
         <button
@@ -123,11 +123,62 @@ onMounted(async () => {
       </div>
 
       <button class="play-btn" :disabled="!selectedCategory" @click="startGame">START GAME</button>
-    </template>
+    </div>
   </div>
 </template>
 
 <style scoped>
+/** SINGLEPLAYER LOBBY STYLE */
+.lobby-container {
+  min-height: calc(100vh - 200px);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  padding: 1.5rem;
+}
+
+.lobby-card {
+  width: min(900px, 100%);
+  background: #fafafa;
+  border: 1px solid #ddd;
+  border-radius: 16px;
+  padding: 2rem;
+  text-align: center;
+}
+
+.lobby-card h1 {
+  margin-top: 0;
+  margin-bottom: 0.4rem;
+}
+
+.subtitle {
+  color: #666;
+  margin-bottom: 1.75rem;
+}
+
+.category-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+  gap: 0.9rem;
+  margin-bottom: 2rem;
+
+  /* keeps everything on screen */
+  max-height: 45vh;
+  overflow-y: auto;
+  padding-right: 0.25rem;
+}
+
+.cat-btn {
+  min-height: 58px;
+}
+
+.play-btn {
+  width: 100%;
+  max-width: 320px;
+}
+
+/** END OF SINGLEPLAYER LOBBY STYLE */
+/** RESUME PORTAL STYLE */
 .resume-card {
   max-width: 550px;
   margin: 2rem auto;
@@ -164,4 +215,6 @@ onMounted(async () => {
   font-size: 1.1rem;
   font-weight: 600;
 }
+
+/** END OF RESUME PORTAL STYLE */
 </style>

@@ -79,7 +79,7 @@ onMounted(async () => {
   background: white;
   border: 1px solid #e8e8e8;
   border-radius: 14px;
-  padding: 24px;
+  padding: 1rem;
   height: 100%;
   box-sizing: border-box;
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.04);
@@ -109,14 +109,14 @@ onMounted(async () => {
 
 .description {
   color: #777;
-  margin: 0 0 20px;
+  margin-bottom: 1rem;
   font-size: 0.95rem;
 }
 
 .category-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(130px, 1fr));
-  gap: 12px;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 0.6rem;
 }
 
 .category-button {
@@ -124,7 +124,7 @@ onMounted(async () => {
   background: #fafafa;
   color: #444;
 
-  padding: 12px 14px;
+  padding: 0.75rem;
   border-radius: 10px;
 
   font-weight: 600;
@@ -136,7 +136,7 @@ onMounted(async () => {
     transform 0.2s ease;
 }
 
-.category-button:hover:not(:disabled) {
+.category-button:hover:not(:disabled):not(.selected) {
   background: #f0f4ff;
   border-color: #7888fc;
   transform: translateY(-2px);

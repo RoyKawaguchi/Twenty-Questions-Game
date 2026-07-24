@@ -22,7 +22,7 @@ defineProps({
         v-for="player in players"
         :key="player.username"
         class="player-card"
-        :style="{ borderLeft: `6px solid ${PLAYER_COLORS[player.color] || '#ccc'}` }"
+        :style="{ borderLeft: `8px solid ${PLAYER_COLORS[player.color] || '#ccc'}` }"
       >
         <div class="player-info">
           <span class="username">
@@ -60,14 +60,14 @@ defineProps({
 .player-grid {
   display: flex;
   flex-direction: column;
-  gap: 0.75rem;
+  gap: 0.5rem;
 }
 
 .player-card {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 1rem;
+  padding: 0.75rem 0.9rem;
   background: white;
   border-radius: 8px;
   box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
@@ -82,7 +82,7 @@ defineProps({
 
 .username {
   font-weight: 600;
-  font-size: 1.1rem;
+  font-size: 1rem;
 }
 
 .guest-tag {

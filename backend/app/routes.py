@@ -154,6 +154,24 @@ def get_user_info(current_user):
     try:
         user_id = current_user["user_id"]
         is_guest = current_user["is_guest"]
+        
+        # Active game lookup pipeline
+        active_match = get_db_collection().game_sessions.find_one({
+            "user_id": user_id,
+            "game_mode": GameMode.SINGLEPLAYER.value,
+            "game_stage": GameStage.PLAYING.value
+        })
+
+        active_game_payload = None
+        if active_match:
+            print("Found an active match with gameID: ", active_match["_id"])
+            active_game_payload = {
+                "gameId": active_match["_id"],
+                "category": active_match["category"],
+                "turnsUsed": active_match["turns_used"],
+                "maxQuestions": active_match["max_questions"],
+                "chatHistory": active_match["chat_history"]
+            }
 
         if is_guest:
             return jsonify({
@@ -165,7 +183,7 @@ def get_user_info(current_user):
                 "winRate": 0,
                 "historySingleplayer": [],
                 "historyMultiplayer": [],
-                "activeGame": None
+                "activeGame": active_game_payload,
             }), 200
 
         user_doc = get_db_collection().users.find_one({"_id": user_id})
@@ -192,25 +210,7 @@ def get_user_info(current_user):
                 item["played_at"] = item["played_at"].isoformat()
             processed_multiplayer.append(item)
 
-        # Active game lookup pipeline
-        active_match = get_db_collection().game_sessions.find_one({
-            "user_id": user_id,
-            "game_mode": GameMode.SINGLEPLAYER.value,
-            "game_stage": {
-                "$in": [GameStage.PLAYING.value]
-            }
-        })
-
-        active_game_payload = None
-        if active_match:
-            print("Found an active match with gameID: ", active_match["_id"])
-            active_game_payload = {
-                "gameId": active_match["_id"],
-                "category": active_match["category"],
-                "turnsUsed": active_match["turns_used"],
-                "maxQuestions": active_match["max_questions"],
-                "chatHistory": active_match["chat_history"]
-            }
+        
 
         return jsonify({
             "username": user_doc["username"],

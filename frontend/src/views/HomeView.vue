@@ -1,10 +1,19 @@
 <script setup>
-import { onMounted } from 'vue'
+import { computed, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 import { initializeSocketConnection } from '../services/socket'
 import { useAuthStore } from '../stores/authStore'
 
 const authStore = useAuthStore()
+
+const nickname = computed(() => {
+  if (!authStore.isGuest) return ''
+
+  const username = authStore.username
+  const lastHyphen = username.lastIndexOf('-')
+
+  return lastHyphen === -1 ? username : username.substring(0, lastHyphen)
+})
 
 const router = useRouter()
 
@@ -24,9 +33,14 @@ onMounted(() => {
 <template>
   <div class="home-page">
     <section class="welcome-card">
-      <h1>Welcome back, {{ authStore.username }}!</h1>
+      <h1 v-if="authStore.isGuest">Welcome, {{ nickname }} (guest)!</h1>
+      <h1 v-else>Welcome back, {{ authStore.username }}!</h1>
 
-      <p>Ready to sharpen your deduction skills?</p>
+      <p v-if="authStore.isGuest">
+        Want to make it official? Sign up
+        <span class="custom-link"><RouterLink to="/signup">here</RouterLink></span> :)
+      </p>
+      <p v-else>Ready to dive in?</p>
     </section>
 
     <section class="play-grid">
