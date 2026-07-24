@@ -1,6 +1,6 @@
 <template>
   <div class="auth-card">
-    <slot></slot> <!-- This is where your page-specific content will appear -->
+    <slot></slot>
   </div>
 </template>
 
@@ -32,5 +32,10 @@
   background: #00ffcc;
   border: none;
   cursor: pointer;
+}
+
+:deep(.link-to-auth) {
+  font-weight: bold;
+  text-decoration: underline;
 }
 </style>

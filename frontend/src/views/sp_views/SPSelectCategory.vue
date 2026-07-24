@@ -107,6 +107,7 @@ onMounted(async () => {
     </div>
 
     <template v-else>
+      <h1>Singleplayer Lobby</h1>
       <p>Choose a category to begin.</p>
 
       <div class="category-grid">

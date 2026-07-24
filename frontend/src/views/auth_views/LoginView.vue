@@ -34,8 +34,12 @@ async function handleLogin() {
       </form>
 
       <div class="auth-links">
-        <p>Don't have an account? <RouterLink to="/signup">Sign Up</RouterLink></p>
-        <p>Play as a guest? <RouterLink to="/guest">Play as Guest</RouterLink></p>
+        <p>
+          Don't have an account? <RouterLink to="/signup" class="link-to-auth">Sign Up</RouterLink>
+        </p>
+        <p>
+          Play as a guest? <RouterLink to="/guest" class="link-to-auth">Play as Guest</RouterLink>
+        </p>
       </div>
     </div>
   </AuthCard>

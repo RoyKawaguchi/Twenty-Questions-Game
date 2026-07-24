@@ -38,8 +38,12 @@ async function handleSignup() {
       </form>
 
       <div class="auth-links">
-        <p>Have an account already? <RouterLink to="/login">Login</RouterLink></p>
-        <p>Play as guest? <RouterLink to="/guest">Play as Guest</RouterLink></p>
+        <p>
+          Have an account already? <RouterLink to="/login" class="link-to-auth">Login</RouterLink>
+        </p>
+        <p>
+          Play as guest? <RouterLink to="/guest" class="link-to-auth">Play as Guest</RouterLink>
+        </p>
       </div>
     </div>
   </AuthCard>

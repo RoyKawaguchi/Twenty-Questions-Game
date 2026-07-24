@@ -21,14 +21,18 @@ async function handleGuest() {
 
 <template>
   <AuthCard>
-    <div class="signup-box">
+    <div class="guest-box">
       <h2>Welcome, Guest User!</h2>
       <input v-model="nickname" type="text" placeholder="Nickname" />
       <button @click="handleGuest">Play as guest</button>
 
       <div class="auth-links">
-        <p>Have an account already? <RouterLink to="/login">Login</RouterLink></p>
-        <p>Create a new account? <RouterLink to="/signup">Sign Up</RouterLink></p>
+        <p>
+          Have an account already? <RouterLink to="/login" class="link-to-auth">Login</RouterLink>
+        </p>
+        <p>
+          Create a new account? <RouterLink to="/signup" class="link-to-auth">Sign Up</RouterLink>
+        </p>
       </div>
     </div>
   </AuthCard>

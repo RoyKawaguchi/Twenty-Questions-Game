@@ -1,9 +1,7 @@
 <script setup>
-import { RouterLink, RouterView, useRoute } from 'vue-router'
+import { RouterLink, RouterView } from 'vue-router'
 import { computed } from 'vue'
 import ProfileMenu from './components/ProfileMenuView.vue'
-
-const route = useRoute()
 
 import { useAuthStore } from './stores/authStore.js'
 const authStore = useAuthStore()
