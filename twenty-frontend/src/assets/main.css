@@ -1,0 +1,176 @@
+@import './base.css';
+
+/* Navigation */
+
+.navbar {
+  position: sticky;
+  top: 0;
+  z-index: 1000;
+
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+
+  padding: 1rem;
+
+  background: #222;
+  color: white;
+}
+
+.nav-right {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+}
+
+.nav-links {
+  display: flex;
+}
+
+.nav-links a {
+  padding-left: 1rem;
+  color: #d0d0d0;
+}
+
+.nav-links a:hover {
+  color: white;
+}
+
+.nav-links a.router-link-active {
+  color: white;
+  font-weight: bold;
+}
+
+.logo {
+  font-family: Georgia, 'Times New Roman', Times, serif;
+  color: #7888fc !important;
+  font-size: 1.2rem;
+  font-weight: 700;
+  letter-spacing: -0.02em;
+
+  text-decoration: none;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.logo:hover {
+  color: #5b6cf5 !important;
+  transform: translateY(-1px);
+}
+
+/* ===START OF GAME LOBBY STYLE===*/
+
+.lobby-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2rem;
+  padding: 2rem;
+  max-width: 800px;
+  margin: 0 auto;
+}
+
+.category-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+  gap: 1rem;
+  width: 100%;
+}
+
+.cat-btn {
+  padding: 0.75rem 1rem;
+  border: 2px solid #ccc;
+  border-radius: 8px;
+  background-color: #f8f9fa;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  font-weight: 600;
+}
+
+.cat-btn:hover:not(:disabled) {
+  background-color: #e2e6ea;
+  border-color: #adb5bd;
+}
+
+.cat-btn-chosen {
+  background-color: #007bff;
+  color: white;
+  border-color: #0056b3;
+}
+
+.cat-btn-chosen:hover {
+  background-color: #007bff !important;
+}
+
+.play-btn {
+  padding: 1rem 3rem;
+  font-size: 1.2rem;
+  background-color: #28a745;
+  color: white;
+  border: none;
+  border-radius: 50px;
+  cursor: pointer;
+  transition: opacity 0.3s ease;
+}
+
+.play-btn:disabled {
+  background-color: #ccc;
+  cursor: not-allowed;
+  opacity: 0.6;
+}
+
+.play-btn:not(:disabled):hover {
+  background-color: #218838;
+}
+
+/* ===END OF GAME LOBBY STYLE===*/
+
+#app {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+}
+
+.content-area {
+  flex: 1;
+}
+
+.footer {
+  margin-top: 48px;
+  padding: 20px 32px;
+  border-top: 1px solid #e8e8e8;
+  background: #fafafa;
+
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+
+  color: #777;
+  font-size: 0.9rem;
+}
+
+.footer p {
+  margin: 0;
+}
+
+.footer-links {
+  display: flex;
+  gap: 20px;
+}
+
+.footer-links a {
+  color: #777;
+  text-decoration: none;
+}
+
+.footer-links a:hover {
+  color: #2d7df6;
+}
+
+@media (max-width: 700px) {
+  .footer {
+    flex-direction: column;
+    gap: 12px;
+    text-align: center;
+  }
+}

@@ -1,0 +1,51 @@
+/* Reset */
+* {
+  box-sizing: border-box;
+}
+
+html,
+body,
+#app {
+  margin: 0;
+  min-height: 100vh;
+}
+
+/* Base page */
+body {
+  font-family: sans-serif;
+  background-color: #f5f5f5;
+  color: #222;
+}
+
+/* Links */
+a {
+  text-decoration: none;
+  color: inherit;
+}
+
+/* Buttons */
+button {
+  font: inherit;
+  cursor: pointer;
+}
+
+/* Form controls */
+input,
+button {
+  border-radius: 4px;
+}
+
+/* Shared utility classes */
+
+.dropdown-header {
+  border-bottom: 1px solid #e5e5e5;
+}
+
+.btn-danger {
+  background: #c30000 !important;
+  color: white;
+}
+
+.btn-danger:hover {
+  background: #a70000 !important;
+}

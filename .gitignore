@@ -4,12 +4,81 @@ backend/__pycache__/
 backend/.env
 *.pyc
 
-# Android
-android_client/.gradle/
-android_client/build/
-android_client/local.properties
-android_client/.idea/workspace.xml
-android_client/*.iml
+# ======================
+# Dependencies
+# ======================
+node_modules/
+**/node_modules/
+
+# ======================
+# Build output
+# ======================
+dist/
+build/
+out/
+
+# ======================
+# Environment variables / secrets
+# ======================
+.env
+.env.*
+!.env.example
+
+# ======================
+# Logs
+# ======================
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+logs/
+*.log
+
+# ======================
+# OS files
+# ======================
+.DS_Store
+Thumbs.db
+
+# ======================
+# Editor files
+# ======================
+.vscode/
+.idea/
+
+# ======================
+# Testing / coverage
+# ======================
+coverage/
+
+# ======================
+# Cache files
+# ======================
+.cache/
+.temp/
+.tmp/
+
+# ======================
+# Vite cache
+# ======================
+.vite/
+
+# ======================
+# Backend uploads (if applicable)
+# ======================
+uploads/
+storage/
+
+# ======================
+# Database files (if applicable)
+# ======================
+*.sqlite
+*.db
+
+# ======================
+# Misc generated files
+# ======================
+*.local
 
 # OS specific
 .DS_Store

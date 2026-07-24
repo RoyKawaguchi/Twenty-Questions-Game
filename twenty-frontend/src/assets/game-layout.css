@@ -1,0 +1,134 @@
+/* src/assets/game-layout.css */
+
+.game-container {
+  display: flex;
+  flex-direction: column;
+  height: 100vh;
+  max-width: 900px;
+  margin: 0 auto;
+  background-color: #ffffff;
+  overflow-y: auto; /* Allows container to scroll if Game Over panel extends past 100vh */
+}
+
+.game-header {
+  padding: 1.5rem 1rem 1rem;
+  text-align: center;
+  border-bottom: 1px solid #f3f4f6;
+  background: #ffffff;
+  z-index: 10;
+}
+
+.game-header h2 {
+  margin: 0 0 0.25rem 0;
+  font-weight: 700;
+  font-size: 1.5rem;
+  color: #111827;
+}
+
+.game-header p {
+  margin: 0;
+  color: #6b7280;
+  font-size: 0.95rem;
+}
+
+.turn-counter {
+  margin-top: 1rem !important;
+  font-size: 0.85rem;
+  display: inline-block;
+  background: #f3f4f6;
+  color: #374151;
+  padding: 6px 14px;
+  border-radius: 20px;
+  font-weight: 600;
+}
+
+.chat-inputs {
+  padding: 1rem;
+  background: #ffffff;
+  border-top: 1px solid #f3f4f6;
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.input-row {
+  display: flex;
+  gap: 0.5rem;
+}
+
+.input-row input {
+  flex: 1;
+  padding: 0.8rem 1.25rem;
+  border: 1px solid #d1d5db;
+  border-radius: 24px; /* Modern pill shape */
+  outline: none;
+  background-color: #ffffff;
+  transition:
+    border-color 0.2s ease,
+    box-shadow 0.2s ease;
+}
+
+.input-row input:focus {
+  border-color: #000000;
+  box-shadow: 0 0 0 3px rgba(0, 0, 0, 0.05);
+}
+
+.input-row input:disabled {
+  background-color: #f9fafb;
+  cursor: not-allowed;
+}
+
+.input-row button {
+  padding: 0.8rem 1.5rem;
+  background-color: #000000; /* Matches your nav bar */
+  color: #ffffff;
+  border: none;
+  border-radius: 24px;
+  font-weight: 600;
+  cursor: pointer;
+  transition:
+    background-color 0.2s,
+    transform 0.1s;
+}
+
+.input-row button:hover {
+  background-color: #333333;
+}
+
+.input-row button:active {
+  transform: scale(0.97);
+}
+
+.game-actions {
+  display: flex;
+  justify-content: center;
+  gap: 1rem;
+  padding: 0.5rem 1rem 1.5rem 1rem;
+  background: #ffffff;
+}
+
+.game-actions button {
+  padding: 0.5rem 1rem;
+  background: #ffffff;
+  color: #374151;
+  border: 1px solid #d1d5db;
+  border-radius: 8px;
+  font-weight: 600;
+  font-size: 0.85rem;
+  cursor: pointer;
+  transition: background-color 0.2s;
+}
+
+.game-actions button:hover {
+  background: #f3f4f6;
+}
+
+.game-actions .danger-btn {
+  color: #dc2626;
+  border-color: #fecaca;
+  background: #fef2f2;
+}
+
+.game-actions .danger-btn:hover {
+  background: #fee2e2;
+}

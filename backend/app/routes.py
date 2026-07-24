@@ -6,6 +6,7 @@ import bcrypt
 from functools import wraps
 from app.database import db_wrapper
 from app.models import GameStage, GameMode
+from app.services.game_engine import calculate_singleplayer_analytics
 
 auth_bp = Blueprint("auth", __name__, url_prefix="/api/auth")
 game_bp = Blueprint("game", __name__, url_prefix="/api/game")
@@ -158,13 +159,13 @@ def get_user_info(current_user):
             return jsonify({
                 "username": current_user["username"],
                 "xp": 0,
-                "is_guest": True,
+                "isGuest": True,
                 "rank": "-",
-                "avg_turns_to_win": 0.0,
-                "win_rate": 0,
-                "history_singleplayer": [],
-                "history_multiplayer": [],
-                "active_game": None
+                "rating": 0.0,
+                "winRate": 0,
+                "historySingleplayer": [],
+                "historyMultiplayer": [],
+                "activeGame": None
             }), 200
 
         user_doc = get_db_collection().users.find_one({"_id": user_id})
@@ -173,7 +174,7 @@ def get_user_info(current_user):
 
         history = user_doc.get("history_singleplayer", [])
         
-        avg_turns, rank_tier, win_rate = _calculate_singleplayer_analytics(history)
+        rating, rank_tier, win_rate = calculate_singleplayer_analytics(history)
 
         # Separate mapping tracking to preserve mutation isolation rules
         processed_singleplayer = []
@@ -195,29 +196,32 @@ def get_user_info(current_user):
         active_match = get_db_collection().game_sessions.find_one({
             "user_id": user_id,
             "game_mode": GameMode.SINGLEPLAYER.value,
-            "game_stage": GameStage.PAUSED.value
+            "game_stage": {
+                "$in": [GameStage.PLAYING.value]
+            }
         })
 
         active_game_payload = None
         if active_match:
+            print("Found an active match with gameID: ", active_match["_id"])
             active_game_payload = {
-                "game_id": active_match["_id"],
+                "gameId": active_match["_id"],
                 "category": active_match["category"],
-                "turns_used": active_match["turns_used"],
-                "max_questions": active_match["max_questions"],
-                "chat_history": active_match["chat_history"]
+                "turnsUsed": active_match["turns_used"],
+                "maxQuestions": active_match["max_questions"],
+                "chatHistory": active_match["chat_history"]
             }
 
         return jsonify({
             "username": user_doc["username"],
             "xp": user_doc.get("xp", 0),
-            "is_guest": False,
+            "isGuest": False,
             "rank": rank_tier,
-            "avg_turns_to_win": avg_turns,
-            "win_rate": win_rate,
-            "history_singleplayer": processed_singleplayer,
-            "history_multiplayer": processed_multiplayer,
-            "active_game": active_game_payload
+            "rating": rating,
+            "winRate": win_rate,
+            "historySingleplayer": processed_singleplayer,
+            "historyMultiplayer": processed_multiplayer,
+            "activeGame": active_game_payload
         }), 200
 
     except Exception as e:
@@ -235,20 +239,20 @@ def get_leaderboard(current_user):
 
         for user_doc in users_cursor:
             history = user_doc.get("history_singleplayer", [])
-            avg_turns, rank_tier, _ = _calculate_singleplayer_analytics(history)
+            rating, rank_tier, _ = calculate_singleplayer_analytics(history)
             xp = user_doc.get("xp")
 
             # Only include competitive players who have unlocked a valid rank tier (min 3 games)
             if rank_tier != "-":
                 leaderboard_entries.append({
                     "username": user_doc["username"],
-                    "avg_turns": avg_turns,
+                    "rating": rating,
                     "rank": rank_tier,
                     "xp": xp,
                 })
 
         # Sort ascending: players with LOWER average turns are higher on the leaderboard
-        leaderboard_entries.sort(key=lambda x: x["avg_turns"])
+        leaderboard_entries.sort(key=lambda x: x["rating"], reverse=True)
 
         # Inject numerical leaderboard placement positions dynamically (1st, 2nd, 3rd...)
         for index, entry in enumerate(leaderboard_entries):
@@ -260,54 +264,6 @@ def get_leaderboard(current_user):
         current_app.logger.error(f"Error compiling global leaderboard metrics: {str(e)}")
         return jsonify({"error": "Internal server error processing leaderboard records."}), 500
 
-def _calculate_singleplayer_analytics(history):
-    """
-    Computes analytics across a user's singleplayer match history.
-    Unifies scoring rules between the profile view and the global leaderboard.
-
-    Ranking rules:
-    - Fewer than 3 games: Unranked
-    - 3-4 games: Based on all available recent games
-    - 5+ games: Based only on the last 5 games
-    """
-    total_games = len(history)
-    wins = [game for game in history if game.get("result") == "WIN"]
-    total_wins = len(wins)
-
-    # Calculate global win rate
-    win_rate = int((total_wins / total_games) * 100) if total_games > 0 else 0
-
-    # Sort all games by most recent
-    sorted_games = sorted(
-        history,
-        key=lambda x: x.get("played_at") or datetime.datetime.min,
-        reverse=True
-    )
-
-    # Use up to the last 5 games (or all games if there are only 3-4)
-    recent_games = sorted_games[:5]
-
-    if total_games >= 3:
-        avg_turns = round(
-            sum(game["turns_used"] for game in recent_games) / len(recent_games),
-            1
-        )
-    else:
-        avg_turns = 0.0
-
-    # Evaluate dynamic rank thresholds
-    if total_games < 3:
-        rank_tier = "-"
-    elif avg_turns <= 7.0:
-        rank_tier = "S"
-    elif avg_turns <= 11.0:
-        rank_tier = "A"
-    elif avg_turns <= 15.0:
-        rank_tier = "B"
-    else:
-        rank_tier = "C"
-
-    return avg_turns, rank_tier, win_rate
 
 @game_bp.route("/categories", methods=["GET"])
 @token_required

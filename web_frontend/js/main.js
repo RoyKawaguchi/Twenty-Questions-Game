@@ -103,6 +103,10 @@ async function switchViewToSingleplayer() {
 
     try {
         switchView(elements.singleplayerContainer);
+        window.addEventListener('beforeunload', (event) => {
+            event.preventDefault();
+            event.returnValue = '';
+          });
         
         const portal = document.getElementById("active-investigation-portal");
         const workspace = singleplayerLobbyElements.categorySelectionWorkspace;
