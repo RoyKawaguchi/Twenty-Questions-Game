@@ -73,7 +73,7 @@ function sendQuestion() {
   socketService.submitSingleplayerTurn('QUESTION', question, (err, response) => {
     if (err) {
       gameStore.addMessage({ type: 'instruction', sender: 'ai', text: `Error: ${err.error}` })
-      isLoadingQuestion = false
+      isLoadingQuestion.value = false
       return
     }
     isLoadingQuestion.value = false
