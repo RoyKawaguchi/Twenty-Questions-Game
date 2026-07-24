@@ -1,5 +1,7 @@
-const GAME_BASE_URL = 'http://127.0.0.1:8080/api/game'
-const AUTH_BASE_URL = 'http://127.0.0.1:8080/api/auth'
+const BACKEND_URL = import.meta.env.VITE_BACKEND_URL
+
+const GAME_BASE_URL = `${BACKEND_URL}/api/game`
+const AUTH_BASE_URL = `${BACKEND_URL}/api/auth`
 
 /**
  * Shared internal helper to attach authentication bearer headers to outgoing requests.

@@ -23,10 +23,7 @@ export function initializeSocketConnection() {
 
   roomStore.socketStatus = 'connecting'
 
-  const targetUrl =
-    window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1'
-      ? 'http://127.0.0.1:8080'
-      : window.location.origin
+  const targetUrl = import.meta.env.VITE_BACKEND_URL
 
   socket = io(targetUrl, {
     auth: { token: authStore.token },
