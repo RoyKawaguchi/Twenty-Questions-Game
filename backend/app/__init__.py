@@ -37,14 +37,16 @@ def create_app():
         app.config["GAME_CATEGORIES"] = game_data["categories"]
         app.config["DEFAULT_MAX_QUESTIONS"] = game_data.get("max_questions", 20)
 
+    frontend_url = os.getenv("FRONTEND_URL", "*")
+
     # Configure API route permissions
-    CORS(app, resources={r"/*": {"origins": "*"}})
+    CORS(app, resources={r"/*": {"origins": frontend_url}})
     
     # Initialize shared persistence module pool
     db_wrapper.init_app(app)
 
     # Wrap application engine with real-time events capabilities safely
-    socketio.init_app(app, cors_allowed_origins="*")
+    socketio.init_app(app, cors_allowed_origins=frontend_url)
 
     # Bind active listener paths
     from app.sockets import register_socket_events
