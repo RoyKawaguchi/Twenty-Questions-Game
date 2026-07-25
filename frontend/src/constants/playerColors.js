@@ -1,20 +1,10 @@
 export const PLAYER_COLORS = {
-  RED: '#ef4444',
-  ORANGE: '#f97316',
-  YELLOW: '#eab308',
-  GREEN: '#22c55e',
-  BLUE: '#3b82f6',
-  INDIGO: '#6366f1',
-  PURPLE: '#a855f7',
-  PINK: '#ec4899',
+  CORAL: '#E85D5D',
+  AMBER: '#D97706',
+  EMERALD: '#059669',
+  AZURE: '#2563EB',
+  VIOLET: '#7C3AED',
+  MAGENTA: '#DB2777',
 }
-export const PLAYER_COLOR_ORDER = [
-  'RED',
-  'ORANGE',
-  'YELLOW',
-  'GREEN',
-  'BLUE',
-  'INDIGO',
-  'PURPLE',
-  'PINK',
-]
+
+export const PLAYER_COLOR_ORDER = ['CORAL', 'AMBER', 'EMERALD', 'AZURE', 'VIOLET', 'MAGENTA']

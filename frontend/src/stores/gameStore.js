@@ -28,7 +28,8 @@ const initialState = () => ({
       rating: 0, // SINGLE only
       rank: null, // SINGLE only
       winRate: null, // SINGLE only
-      turnsSubmitted: 0, // MULTI only
+      questionsSubmitted: 0, // MULTI only
+      guessesSubmitted: 0, // MULTI only
     },
   },
 })

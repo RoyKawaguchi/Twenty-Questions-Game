@@ -37,14 +37,7 @@ def register_socket_events(socketio):
     # ==========================================
 
     PLAYER_COLORS = [
-        'RED',
-        'ORANGE',
-        'YELLOW',
-        'GREEN',
-        'BLUE',
-        'INDIGO',
-        'PURPLE',
-        'PINK',
+        'CORAL', 'AMBER', 'EMERALD', 'AZURE', 'VIOLET', 'MAGENTA'
     ]
 
     def broadcast_room_update(room_code):
@@ -733,9 +726,6 @@ def register_socket_events(socketio):
 
         stats = {}
         for player in room["players"]:
-            if player["is_guest"]:
-                continue
-
             opponents = [
                 p["username"]
                 for p in room["players"]
@@ -750,13 +740,17 @@ def register_socket_events(socketio):
 
             player_stats = game_engine.record_multiplayer_history(
                 player["user_id"],
+                player["username"],
                 game["_id"],
                 room_code,
                 game["category"],
                 result,
                 game["turns_used"],
                 opponents,
+                player["is_guest"]
             )
+
+            print(f"stats for {player["username"]}: {player_stats["questionsSubmitted"]} questions, {player_stats["guessesSubmitted"]} guesses")
 
             stats[player["username"]] = player_stats
 

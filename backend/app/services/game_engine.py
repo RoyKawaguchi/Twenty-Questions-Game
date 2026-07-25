@@ -10,13 +10,6 @@ from app.services.llm_service import evaluate_question, evaluate_guess
 
 logger = logging.getLogger(__name__)
 
-PLAYER_COLORS = [
-    "#2563EB",  # Player 1 - Blue
-    "#DC2626",  # Player 2 - Red
-    "#16A34A",  # Player 3 - Green
-    "#EAB308",  # Player 4 - Yellow
-]
-
 def get_db_collection():
     if db_wrapper.db is None:
         raise RuntimeError("Database connection has not been initialized yet.")
@@ -214,7 +207,7 @@ def add_chat_entry(game_id, chat_entry):
     )
 
 def count_user_chat_entries(game_id, username):
-    """Returns the number of chat entries sent by the given user."""
+    """Returns (question_count, guess_count) for the given user."""
 
     game_session = get_db_collection().game_sessions.find_one(
         {"_id": game_id},
@@ -222,15 +215,21 @@ def count_user_chat_entries(game_id, username):
     )
 
     if not game_session:
-        return 0
+        return (0, 0)
 
-    chat_history = game_session.get("chat_history", [])
+    question_count = 0
+    guess_count = 0
 
-    return sum(
-        1
-        for entry in chat_history
-        if entry.get("sender") == username
-    )
+    for entry in game_session.get("chat_history", []):
+        if entry.get("sender") != username:
+            continue
+
+        if entry.get("type") == "question":
+            question_count += 1
+        elif entry.get("type") == "guess":
+            guess_count += 1
+
+    return (question_count, guess_count)
 
 
 
@@ -284,44 +283,44 @@ def record_singleplayer_history(user_id, game_id, category, result, turns_used):
     }
 
 
-def record_multiplayer_history(user_id, game_id, room_code, category, result, turns_used, opponents):
-    xp_earned = compute_xp(
+def record_multiplayer_history(user_id, username, game_id, room_code, category, result, turns_used, opponents, is_guest=False):
+    xp_earned = 0 if is_guest else compute_xp(
         turns_used,
         result == GameResult.WIN.value,
         num_players=len(opponents) + 1,
-    )
+    ) 
 
-    history_entry = {
-        "game_id": game_id,
-        "room_code": room_code,
-        "category": category,
-        "result": result,
-        "turns_used": turns_used,
-        "xp_earned": xp_earned,
-        "opponents": opponents,
-        "played_at": now_iso(),
-    }
 
-    get_db_collection().users.update_one(
-        {"_id": user_id},
-        {
-            "$inc": {"xp": xp_earned},
-            "$push": {"history_multiplayer": history_entry},
-        },
-    )
+    if not is_guest:
+        history_entry = {
+            "game_id": game_id,
+            "room_code": room_code,
+            "category": category,
+            "result": result,
+            "turns_used": turns_used,
+            "xp_earned": xp_earned,
+            "opponents": opponents,
+            "played_at": now_iso(),
+        }
+
+        get_db_collection().users.update_one(
+            {"_id": user_id},
+            {
+                "$inc": {"xp": xp_earned},
+                "$push": {"history_multiplayer": history_entry},
+            },
+        )
 
     # Fetch the updated user document after the update
     user_doc = get_db_collection().users.find_one({"_id": user_id}) or {}
 
-    turns_submitted = count_user_chat_entries(
-        game_id,
-        user_doc.get("username", "")
-    )
+    questions_submitted, guesses_submitted = count_user_chat_entries(game_id, username)
 
     return {
         "xpEarned": xp_earned,
         "xp": user_doc.get("xp", 0),
-        "turnsSubmitted": turns_submitted,
+        "questionsSubmitted": questions_submitted,
+        "guessesSubmitted": guesses_submitted,
     }
 
 

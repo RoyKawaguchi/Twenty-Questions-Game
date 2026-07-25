@@ -46,13 +46,14 @@ const myStats = computed(() => {
   return stats
 })
 
-// Maps roomStore.players with individual turnsSubmitted from backend stats
+// Maps roomStore.players with individual q & g submitted from backend stats
 const mpPlayerResults = computed(() => {
   return roomStore.players.map((p) => {
     const playerStat = props.gameOverData.stats?.[p.username]
     return {
       username: p.username,
-      turnsSubmitted: playerStat?.turnsSubmitted ?? null,
+      questionsSubmitted: playerStat?.questionsSubmitted ?? null,
+      guessesSubmitted: playerStat?.guessesSubmitted ?? null,
       isWinner: p.username === props.gameOverData.winnerUsername,
     }
   })
@@ -92,11 +93,14 @@ const mpPlayerResults = computed(() => {
       <div class="stat-card highlight">
         <span class="stat-label">XP Earned</span>
         <span class="stat-value">+{{ myStats.xpEarned || 0 }}</span>
+        <span v-if="authStore.isGuest" class="stat-subtext">(Guest)</span>
       </div>
 
       <div v-if="mode === 'MULTIPLAYER'" class="stat-card">
         <span class="stat-label">Your Turns</span>
-        <span class="stat-value">{{ myStats.turnsSubmitted || 0 }}</span>
+        <span class="stat-value">{{
+          myStats.questionsSubmitted + myStats.guessesSubmitted || 0
+        }}</span>
       </div>
 
       <div class="stat-card">
@@ -140,7 +144,9 @@ const mpPlayerResults = computed(() => {
             <span v-if="member.isWinner" class="mp-winner-crown">👑</span>
           </div>
           <span class="mp-player-turns">
-            {{ member.turnsSubmitted !== null ? `${member.turnsSubmitted} turns` : 'Guest' }}
+            {{
+              `${member.questionsSubmitted} question${member.questionsSubmitted === 1 ? '' : 's'} ${member.guessesSubmitted} guess${member.guessesSubmitted === 1 ? '' : 'es'}`
+            }}
           </span>
         </div>
       </div>
@@ -230,6 +236,12 @@ const mpPlayerResults = computed(() => {
   grid-template-columns: repeat(auto-fit, minmax(110px, 1fr));
   gap: 12px;
   margin-bottom: 1.5rem;
+}
+
+.stat-subtext {
+  font-size: 0.75rem;
+  color: #6b7280;
+  margin-bottom: 4px;
 }
 
 .stat-card {
