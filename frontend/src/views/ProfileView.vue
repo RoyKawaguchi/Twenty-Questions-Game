@@ -44,7 +44,7 @@ onMounted(async () => {
 </script>
 <template>
   <div class="profile-page" v-if="userInfo">
-    <div class="profile-card">
+    <div class="profile-card gradient-card animate-in">
       <div class="profile-header">
         <h2>User Profile</h2>
 
@@ -73,9 +73,9 @@ onMounted(async () => {
         </div>
 
         <div class="stat">
-          <span class="label">Rank</span>
+          <span class="label">Rank</span>∑
 
-          <span :class="['rank-circle', `rank-${userInfo.rank.toLowerCase()}`]">
+          <span :class="['value', `rank-${userInfo.rank.toLowerCase()}`]">
             {{ userInfo.rank }}
           </span>
         </div>
@@ -148,19 +148,24 @@ onMounted(async () => {
   padding: 0 20px;
 }
 
-.profile-card,
 .history-card {
-  background: white;
-  border: 1px solid #e8e8e8;
+  background: #1a1a1a;
+  border: 1px solid #3f3f46;
   border-radius: 14px;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.35);
+  padding: 24px;
+  margin-bottom: 24px;
+}
+
+.profile-card {
+  border-radius: 14px;
   padding: 24px;
   margin-bottom: 24px;
 }
 
 .profile-header h2 {
   margin: 0;
-  color: #555;
+  color: #a1a1aa;
   font-size: 1rem;
   font-weight: 600;
 }
@@ -169,14 +174,15 @@ onMounted(async () => {
   margin: 8px 0 0;
   font-size: 2rem;
   font-weight: 700;
+  color: #ffffff;
 }
 
 .guest-tag {
   margin-left: 10px;
   padding: 3px 10px;
   border-radius: 999px;
-  background: #ffe6b3;
-  color: #8a5800;
+  background: rgba(245, 158, 11, 0.18);
+  color: #fbbf24;
   font-size: 0.8rem;
   vertical-align: middle;
 }
@@ -189,15 +195,15 @@ onMounted(async () => {
 }
 
 .stat {
-  background: #fafafa;
-  border: 1px solid #eee;
+  background: #27272a;
+  border: 1px solid #3f3f46;
   border-radius: 10px;
   padding: 18px;
 }
 
 .label {
   display: block;
-  color: #888;
+  color: #a1a1aa;
   font-size: 0.85rem;
   margin-bottom: 6px;
 }
@@ -205,10 +211,11 @@ onMounted(async () => {
 .value {
   font-size: 1.4rem;
   font-weight: 700;
+  color: #ffffff;
 }
 
 .rank-note {
-  color: #666;
+  color: #d4d4d8;
   line-height: 1.5;
 }
 
@@ -222,6 +229,7 @@ onMounted(async () => {
 .history-header h3 {
   margin: 0;
   font-size: 1.3rem;
+  color: #ffffff;
 }
 
 .tab-buttons {
@@ -230,23 +238,27 @@ onMounted(async () => {
 }
 
 .tab-buttons button {
-  border: none;
-  background: #f1f1f1;
-  color: #555;
+  border: 1px solid #3f3f46;
+  background: #27272a;
+  color: #d4d4d8;
   padding: 10px 18px;
   border-radius: 8px;
   cursor: pointer;
   font-weight: 600;
-  transition: background 0.2s;
+  transition:
+    background-color 0.2s ease,
+    border-color 0.2s ease;
 }
 
 .tab-buttons button:hover {
-  background: #e3e3e3;
+  background: #323238;
+  border-color: #52525b;
 }
 
 .tab-buttons button.active {
-  background: #2d7df6;
-  color: white;
+  background: #2563eb;
+  border-color: #2563eb;
+  color: #ffffff;
 }
 
 .history-table {
@@ -257,16 +269,34 @@ onMounted(async () => {
 .history-table th {
   text-align: left;
   padding: 14px 18px;
-  background: #f7f7f7;
-  color: #666;
+  background: #27272a;
+  color: #a1a1aa;
   font-size: 0.9rem;
   font-weight: 600;
-  border-bottom: 2px solid #e8e8e8;
+  border-bottom: 2px solid #3f3f46;
+}
+
+.history-table td {
+  padding: 16px 18px;
+  border-bottom: 1px solid #3f3f46;
+  color: #f3f4f6;
+}
+
+.history-table tbody tr {
+  transition: background-color 0.15s ease;
+}
+
+.history-table tbody tr:hover {
+  background: #222225;
+}
+
+.history-table tbody tr:last-child td {
+  border-bottom: none;
 }
 
 .empty-state {
   text-align: center;
-  color: #777;
+  color: #a1a1aa;
   padding: 50px 20px;
 }
 
@@ -278,5 +308,41 @@ onMounted(async () => {
   padding: 6px 14px;
   border-radius: 999px;
   font-weight: 600;
+}
+
+/* Rank colors */
+.rank-bronze {
+  background: rgba(180, 83, 9, 0.18);
+  color: #fbbf24;
+}
+
+.rank-silver {
+  background: rgba(107, 114, 128, 0.18);
+  color: #d1d5db;
+}
+
+.rank-gold {
+  background: rgba(234, 179, 8, 0.18);
+  color: #facc15;
+}
+
+.rank-platinum {
+  background: rgba(6, 182, 212, 0.18);
+  color: #67e8f9;
+}
+
+.rank-diamond {
+  background: rgba(59, 130, 246, 0.18);
+  color: #93c5fd;
+}
+
+.rank-master {
+  background: rgba(147, 51, 234, 0.18);
+  color: #c084fc;
+}
+
+.rank-grandmaster {
+  background: rgba(220, 38, 38, 0.18);
+  color: #f87171;
 }
 </style>

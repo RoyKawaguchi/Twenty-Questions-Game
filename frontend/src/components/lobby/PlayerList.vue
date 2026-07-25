@@ -43,10 +43,10 @@ defineProps({
 
 <style scoped>
 .player-list-container {
-  background: #fafafa;
+  background: var(--surface);
   padding: 1rem;
   border-radius: 12px;
-  border: 1px solid #eee;
+  border: 1px solid var(--border);
   height: 100%;
   box-sizing: border-box;
 }
@@ -54,7 +54,7 @@ defineProps({
 .player-list-container h3 {
   margin-top: 0;
   margin-bottom: 1rem;
-  color: #333;
+  color: var(--text-primary);
 }
 
 .player-grid {
@@ -68,9 +68,9 @@ defineProps({
   align-items: center;
   justify-content: space-between;
   padding: 0.75rem 0.9rem;
-  background: white;
+  background: #111111;
+  border: 1px solid var(--border);
   border-radius: 8px;
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
 }
 
 .player-info {
@@ -83,12 +83,13 @@ defineProps({
 .username {
   font-weight: 600;
   font-size: 1rem;
+  color: var(--text-primary);
 }
 
 .guest-tag {
   font-weight: normal;
   font-size: 0.9rem;
-  color: #777;
+  color: var(--text-muted);
 }
 
 .host-badge {
@@ -101,8 +102,8 @@ defineProps({
 }
 
 .empty-slot {
-  border-left: 6px solid #e0e0e0 !important;
-  color: #888;
+  border-left: 6px solid var(--border) !important;
+  color: var(--text-muted);
   font-style: italic;
   justify-content: flex-start;
   gap: 10px;
@@ -111,7 +112,7 @@ defineProps({
 .pulsing-dot {
   width: 10px;
   height: 10px;
-  background-color: #ccc;
+  background-color: var(--text-muted);
   border-radius: 50%;
   animation: pulse 1.5s infinite;
 }

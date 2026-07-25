@@ -209,7 +209,6 @@ def get_user_info(current_user):
             if isinstance(item.get("played_at"), datetime.datetime):
                 item["played_at"] = item["played_at"].isoformat()
             processed_multiplayer.append(item)
-
         
 
         return jsonify({

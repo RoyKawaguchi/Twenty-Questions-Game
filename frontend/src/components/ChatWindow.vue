@@ -107,19 +107,25 @@ watch(() => [props.messages, props.isLoading], scrollToBottom, { deep: true })
     </div>
   </div>
 </template>
-
 <style scoped>
 .chat-window {
   flex: 1;
   min-height: 50vh;
   overflow-y: auto;
+
   padding: 1.5rem 1rem;
+
   display: flex;
   flex-direction: column;
   gap: 16px;
-  background-color: #f9fafb;
-}
 
+  background-color: #212121;
+
+  border-radius: 24px;
+  border: 1px solid #3f3f46;
+
+  box-shadow: 0 8px 25px rgba(0, 0, 0, 0.35);
+}
 .message-row {
   display: flex;
   width: 100%;
@@ -138,7 +144,7 @@ watch(() => [props.messages, props.isLoading], scrollToBottom, { deep: true })
   padding: 12px 16px;
   border-radius: 20px;
   line-height: 1.45;
-  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.25);
   position: relative;
 }
 
@@ -148,19 +154,19 @@ watch(() => [props.messages, props.isLoading], scrollToBottom, { deep: true })
   border-bottom-right-radius: 4px;
 }
 
-/* AI: Clean White Panel */
+/* AI */
 .bubble-ai {
-  background: #ffffff;
-  color: #111827;
-  border: 1px solid #e5e7eb;
+  background: #1a1a1a;
+  color: #f3f4f6;
+  border: 1px solid #3f3f46;
   border-bottom-left-radius: 4px;
 }
 
-/* System: Muted Amber/Warning */
+/* System */
 .bubble-system {
-  background: #fffbeb;
-  color: #92400e;
-  border: 1px solid #fde68a;
+  background: rgba(245, 158, 11, 0.12);
+  color: #fbbf24;
+  border: 1px solid rgba(245, 158, 11, 0.3);
   border-radius: 12px;
 }
 
@@ -177,30 +183,30 @@ watch(() => [props.messages, props.isLoading], scrollToBottom, { deep: true })
 }
 
 .bubble-ai .message-label {
-  color: #6b7280;
+  color: #a1a1aa;
 }
 
 .bubble-system .message-label {
-  color: #b45309;
+  color: #f59e0b;
 }
 
 .analysis-box {
   margin-top: 12px;
   padding: 12px;
-  background: #f8fafc;
-  border-left: 3px solid #000000;
+  background: #27272a;
+  border-left: 3px solid #60a5fa;
   border-radius: 0 8px 8px 0;
   font-size: 0.85rem;
-  color: #334155;
+  color: #d4d4d8;
 }
 
 .analysis-box strong {
   display: block;
   margin-bottom: 4px;
-  color: #0f172a;
+  color: #ffffff;
 }
 
-/* Smoother, modern typing indicator */
+/* Typing indicator */
 .typing-indicator {
   display: flex;
   align-items: center;
@@ -213,7 +219,7 @@ watch(() => [props.messages, props.isLoading], scrollToBottom, { deep: true })
   width: 6px;
   height: 6px;
   border-radius: 50%;
-  background: #9ca3af;
+  background: #71717a;
   animation: typingBounce 1.4s infinite ease-in-out both;
 }
 

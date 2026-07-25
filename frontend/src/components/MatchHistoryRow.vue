@@ -30,22 +30,23 @@ function formatDate(dateString) {
     <td>{{ match.xp_earned }}</td>
   </tr>
 </template>
-
 <style scoped>
 .history-row {
-  transition: background 0.15s;
+  transition: background-color 0.15s ease;
 }
 
 .history-row:hover {
-  background: #fafafa;
+  background: #222225;
 }
 
 td {
   padding: 14px 18px;
-  border-bottom: 1px solid #eee;
+  border-bottom: 1px solid #3f3f46;
+  color: #f3f4f6;
 }
 
 .result-pill {
+  display: inline-block;
   padding: 4px 10px;
   border-radius: 999px;
   font-size: 0.85rem;
@@ -53,12 +54,12 @@ td {
 }
 
 .win {
-  background: #dff6e5;
-  color: #1c7c38;
+  background: rgba(34, 197, 94, 0.18);
+  color: #4ade80;
 }
 
 .loss {
-  background: #ffe4e4;
-  color: #c53b3b;
+  background: rgba(239, 68, 68, 0.18);
+  color: #f87171;
 }
 </style>

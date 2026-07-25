@@ -63,7 +63,7 @@ onMounted(async () => {
 </script>
 <template>
   <div class="lobby-container">
-    <div class="lobby-card">
+    <div class="lobby-card gradient-card animate-in">
       <h1>Multiplayer Lobby</h1>
       <p class="subtitle">Create a room to host a game or join a friend's room using a code.</p>
 
@@ -102,24 +102,25 @@ onMounted(async () => {
   display: flex;
   justify-content: center;
   align-items: center;
+  padding: 1.5rem;
 }
 
 .lobby-card {
   width: min(900px, 100%);
-  background: #fafafa;
-  border: 1px solid #ddd;
   border-radius: 16px;
   padding: 2rem;
   text-align: center;
+  color: var(--text-primary);
 }
 
 .lobby-card h1 {
   margin-top: 0;
   margin-bottom: 0.4rem;
+  color: var(--text-primary);
 }
 
 .subtitle {
-  color: #666;
+  color: var(--text-muted);
   margin-top: 1rem;
   margin-bottom: 2rem;
 }
@@ -131,7 +132,8 @@ onMounted(async () => {
 }
 
 .card {
-  border: 1px solid #ddd;
+  border: 1px solid var(--border);
+  background: var(--surface-alt);
   border-radius: 12px;
   padding: 1.5rem;
   display: flex;
@@ -142,10 +144,11 @@ onMounted(async () => {
 .card h2 {
   margin-top: 1.25rem;
   margin-bottom: 1rem;
+  color: var(--text-primary);
 }
 
 .card p {
-  color: #666;
+  color: var(--text-muted);
   margin-top: 0rem;
   margin-bottom: 1rem;
 }
@@ -157,6 +160,18 @@ input {
   margin-bottom: 1rem;
   font-size: 1rem;
   text-transform: uppercase;
+  background: #111111;
+  border: 1px solid var(--border);
+  color: var(--text-primary);
+}
+
+input::placeholder {
+  color: var(--text-muted);
+}
+
+input:focus {
+  outline: none;
+  border-color: var(--accent-indigo);
 }
 
 .play-btn {

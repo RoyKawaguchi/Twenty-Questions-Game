@@ -13,8 +13,9 @@
 
   padding: 1rem;
 
-  background: #222;
-  color: white;
+  background: #222222;
+  color: #f3f4f6;
+  border-bottom: 1px solid #27272a;
 }
 
 .nav-right {
@@ -29,15 +30,16 @@
 
 .nav-links a {
   padding-left: 1rem;
-  color: #d0d0d0;
+  color: #a1a1aa;
+  transition: color 0.2s ease;
 }
 
 .nav-links a:hover {
-  color: white;
+  color: #ffffff;
 }
 
 .nav-links a.router-link-active {
-  color: white;
+  color: #ffffff;
   font-weight: bold;
 }
 
@@ -58,6 +60,60 @@
   transform: translateY(-1px);
 }
 
+/* ===== Shared gradient hero card + entrance animation ===== */
+
+.gradient-card {
+  position: relative;
+  overflow: hidden;
+
+  background:
+    radial-gradient(circle at top right, rgba(99, 102, 241, 0.25), transparent 45%),
+    linear-gradient(135deg, #18181b, #111827);
+
+  border: 1px solid rgba(99, 102, 241, 0.35);
+
+  box-shadow:
+    0 15px 35px rgba(0, 0, 0, 0.45),
+    inset 0 1px rgba(255, 255, 255, 0.05);
+}
+
+.gradient-card::after {
+  content: '';
+
+  position: absolute;
+  width: 220px;
+  height: 220px;
+
+  top: -80px;
+  right: -80px;
+
+  background: rgba(99, 102, 241, 0.15);
+  border-radius: 50%;
+
+  filter: blur(20px);
+  pointer-events: none;
+}
+
+.gradient-card > * {
+  position: relative;
+  z-index: 1;
+}
+
+@keyframes slideIn {
+  from {
+    opacity: 0;
+    transform: translateY(-15px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.animate-in {
+  animation: slideIn 0.5s ease;
+}
+
 /* ===START OF GAME LOBBY STYLE===*/
 
 .lobby-container {
@@ -68,6 +124,8 @@
   padding: 2rem;
   max-width: 800px;
   margin: 0 auto;
+
+  color: #f3f4f6;
 }
 
 .category-grid {
@@ -79,27 +137,28 @@
 
 .cat-btn {
   padding: 0.75rem 1rem;
-  border: 2px solid #ccc;
+  border: 2px solid #3f3f46;
   border-radius: 8px;
-  background-color: #f8f9fa;
+  background-color: #1a1a1a;
+  color: #f3f4f6;
   cursor: pointer;
   transition: all 0.2s ease;
   font-weight: 600;
 }
 
 .cat-btn:hover:not(:disabled) {
-  background-color: #e2e6ea;
-  border-color: #adb5bd;
+  background-color: #27272a;
+  border-color: #52525b;
 }
 
 .cat-btn-chosen {
-  background-color: #007bff;
+  background-color: #2563eb;
   color: white;
-  border-color: #0056b3;
+  border-color: #1d4ed8;
 }
 
 .cat-btn-chosen:hover {
-  background-color: #007bff !important;
+  background-color: #2563eb !important;
 }
 
 .play-btn {
@@ -110,11 +169,14 @@
   border: none;
   border-radius: 50px;
   cursor: pointer;
-  transition: opacity 0.3s ease;
+  transition:
+    background-color 0.2s ease,
+    opacity 0.3s ease;
 }
 
 .play-btn:disabled {
-  background-color: #ccc;
+  background-color: #3f3f46;
+  color: #9ca3af;
   cursor: not-allowed;
   opacity: 0.6;
 }
@@ -129,6 +191,8 @@
   min-height: 100vh;
   display: flex;
   flex-direction: column;
+  background: #0f0f0f;
+  color: #f3f4f6;
 }
 
 .content-area {
@@ -138,14 +202,14 @@
 .footer {
   margin-top: 48px;
   padding: 20px 32px;
-  border-top: 1px solid #e8e8e8;
-  background: #fafafa;
+  border-top: 1px solid #27272a;
+  background: #222222;
 
   display: flex;
   justify-content: space-between;
   align-items: center;
 
-  color: #777;
+  color: #a1a1aa;
   font-size: 0.9rem;
 }
 
@@ -159,12 +223,13 @@
 }
 
 .footer-links a {
-  color: #777;
+  color: #a1a1aa;
   text-decoration: none;
+  transition: color 0.2s ease;
 }
 
 .footer-links a:hover {
-  color: #2d7df6;
+  color: #60a5fa;
 }
 
 @media (max-width: 700px) {

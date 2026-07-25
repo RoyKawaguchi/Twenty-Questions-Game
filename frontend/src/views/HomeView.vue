@@ -15,6 +15,13 @@ const nickname = computed(() => {
   return lastHyphen === -1 ? username : username.substring(0, lastHyphen)
 })
 
+const currentDate = new Date().toLocaleDateString('en-US', {
+  weekday: 'long',
+  month: 'long',
+  day: 'numeric',
+  year: 'numeric',
+})
+
 const router = useRouter()
 
 function goToSP() {
@@ -32,22 +39,33 @@ onMounted(() => {
 
 <template>
   <div class="home-page">
-    <section class="welcome-card">
-      <h1 v-if="authStore.isGuest">Welcome, {{ nickname }} (guest)!</h1>
-      <h1 v-else>Welcome back, {{ authStore.username }}!</h1>
+    <section class="welcome-card gradient-card animate-in">
+      <div class="welcome-content">
+        <h1 v-if="authStore.isGuest">
+          Welcome, {{ nickname }} <span class="guest-label">(guest)</span>!
+        </h1>
 
-      <p v-if="authStore.isGuest">
-        Want to make it official? Sign up
-        <span class="custom-link"><RouterLink to="/signup">here</RouterLink></span> :)
-      </p>
-      <p v-else>Ready to dive in?</p>
+        <h1 v-else>Welcome back, {{ authStore.username }}!</h1>
+
+        <p class="date-text">
+          {{ currentDate }}
+        </p>
+
+        <p v-if="authStore.isGuest" class="guest-message">
+          Want to make it official?
+          <RouterLink to="/signup" class="custom-link"> Sign up here </RouterLink>
+          :)
+        </p>
+
+        <p v-else class="return-message">It is nice to have you back.</p>
+      </div>
     </section>
 
     <section class="play-grid">
       <div class="play-card">
         <h2>👤 Singleplayer</h2>
 
-        <p>Play at your own pace.</p>
+        <p>Play at your own pace and enjoy the experience solo.</p>
 
         <button class="btn play-btn" @click="goToSP">Play</button>
       </div>
@@ -71,29 +89,70 @@ onMounted(() => {
 
   display: flex;
   flex-direction: column;
-  gap: 24px;
+  gap: 28px;
 }
 
-.welcome-card,
-.play-card {
-  background: white;
-  border: 1px solid #e8e8e8;
+.welcome-card {
   border-radius: 14px;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
-  padding: 24px;
+  padding: 36px;
 }
 
 .welcome-card h1 {
   margin: 0;
-  font-size: 2rem;
+
+  font-size: 2.4rem;
+  font-weight: 750;
+
+  color: white;
+  letter-spacing: -0.03em;
+}
+
+.guest-label {
+  color: #fbbf24;
+  font-size: 1.4rem;
+}
+
+.date-text {
+  display: inline-block;
+
+  margin-top: 18px !important;
+  padding: 7px 15px;
+
+  background: rgba(99, 102, 241, 0.15);
+
+  border: 1px solid rgba(99, 102, 241, 0.35);
+  border-radius: 999px;
+
+  color: #c7d2fe !important;
+
+  font-size: 1rem;
 }
 
 .welcome-card p {
-  margin-top: 10px;
-  color: #666;
-  line-height: 1.5;
+  color: #c4c4d4;
+  line-height: 1.6;
 }
 
+.guest-message,
+.return-message {
+  margin-top: 18px;
+  font-size: 1.05rem;
+}
+
+.custom-link {
+  color: #a5b4fc;
+  font-weight: 600;
+  text-decoration: none;
+
+  transition: color 0.2s ease;
+}
+
+.custom-link:hover {
+  color: #c7d2fe;
+  text-decoration: underline;
+}
+
+/* Game cards */
 .play-grid {
   display: grid;
   grid-template-columns: repeat(2, 1fr);
@@ -101,25 +160,56 @@ onMounted(() => {
 }
 
 .play-card {
+  min-height: 230px;
+
   display: flex;
   flex-direction: column;
+  justify-content: center;
+  align-items: center;
+
+  text-align: center;
+
+  background: #1a1a1a;
+
+  border: 1px solid #3f3f46;
+  border-radius: 18px;
+
+  padding: 28px;
+
+  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.35);
+
+  transition:
+    transform 0.25s ease,
+    border-color 0.25s ease,
+    box-shadow 0.25s ease;
+}
+
+.play-card:hover {
+  transform: translateY(-5px);
+
+  border-color: rgba(99, 102, 241, 0.6);
+
+  box-shadow: 0 15px 30px rgba(0, 0, 0, 0.45);
 }
 
 .play-card h2 {
-  margin-top: 0;
-  margin-bottom: 0px;
+  margin: 0;
+
+  font-size: 1.8rem;
+
+  color: white;
 }
 
 .play-card p {
-  color: #666;
+  color: #d4d4d8;
+
   line-height: 1.6;
-  flex: 1;
-  margin-left: 12px;
-  margin-bottom: 12px;
+
+  margin: 14px 0 18px;
 }
 
 .play-btn {
-  align-self: flex-start;
+  margin-top: auto;
 }
 
 @media (max-width: 700px) {
@@ -127,8 +217,12 @@ onMounted(() => {
     grid-template-columns: 1fr;
   }
 
+  .welcome-card {
+    padding: 28px 22px;
+  }
+
   .welcome-card h1 {
-    font-size: 1.6rem;
+    font-size: 1.8rem;
   }
 }
 </style>

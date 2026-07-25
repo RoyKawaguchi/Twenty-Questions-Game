@@ -85,7 +85,7 @@ onMounted(async () => {
 
 <template>
   <div class="lobby-container">
-    <div v-if="pausedGame" class="resume-card">
+    <div v-if="pausedGame" class="resume-card gradient-card animate-in">
       <h2>Resume Your Game</h2>
 
       <p>You have a saved singleplayer game that must be completed before starting a new one.</p>
@@ -102,11 +102,13 @@ onMounted(async () => {
         </div>
       </div>
 
-      <button class="play-btn" @click="resumeGame">Resume Game</button>
-      <button class="btn-danger" @click="forfeitGame">Forfeit Game</button>
+      <div class="resume-actions">
+        <button class="play-btn" @click="resumeGame">Resume Game</button>
+        <button class="btn-danger" @click="forfeitGame">Forfeit Game</button>
+      </div>
     </div>
 
-    <div v-else class="lobby-card">
+    <div v-else class="lobby-card gradient-card animate-in">
       <h1>Singleplayer Lobby</h1>
       <p class="subtitle">Select a category to begin your game.</p>
 
@@ -139,8 +141,6 @@ onMounted(async () => {
 
 .lobby-card {
   width: min(900px, 100%);
-  background: #fafafa;
-  border: 1px solid #ddd;
   border-radius: 16px;
   padding: 2rem;
   text-align: center;
@@ -149,10 +149,11 @@ onMounted(async () => {
 .lobby-card h1 {
   margin-top: 0;
   margin-bottom: 0.4rem;
+  color: #ffffff;
 }
 
 .subtitle {
-  color: #666;
+  color: #a1a1aa;
   margin-bottom: 1.75rem;
 }
 
@@ -172,25 +173,20 @@ onMounted(async () => {
   min-height: 58px;
 }
 
-.play-btn {
-  width: 100%;
-  max-width: 320px;
-}
-
 /** END OF SINGLEPLAYER LOBBY STYLE */
+
 /** RESUME PORTAL STYLE */
 .resume-card {
   max-width: 550px;
   margin: 2rem auto;
   padding: 2rem;
   border-radius: 16px;
-  border: 1px solid #ddd;
-  background: #fafafa;
   text-align: center;
 }
 
 .resume-card h2 {
   margin-top: 0;
+  color: #ffffff;
 }
 
 .resume-details {
@@ -208,12 +204,47 @@ onMounted(async () => {
 
 .resume-details strong {
   font-size: 0.9rem;
-  color: #666;
+  color: #a1a1aa;
 }
 
 .resume-details span {
   font-size: 1.1rem;
   font-weight: 600;
+  color: #f3f4f6;
+}
+
+.resume-actions {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.resume-actions .play-btn,
+.resume-actions .btn-danger {
+  width: 100%;
+  padding: 0.9rem 1.5rem;
+  border-radius: 999px;
+  font-size: 1rem;
+  font-weight: 600;
+  transition:
+    background-color 0.2s ease,
+    border-color 0.2s ease,
+    transform 0.1s ease;
+}
+
+.resume-actions .btn-danger {
+  background: transparent !important;
+  color: #f87171;
+  border: 1px solid #7f1d1d;
+}
+
+.resume-actions .btn-danger:hover {
+  background: #2b1111 !important;
+  border-color: #991b1b;
+}
+
+.resume-actions button:active {
+  transform: scale(0.98);
 }
 
 /** END OF RESUME PORTAL STYLE */

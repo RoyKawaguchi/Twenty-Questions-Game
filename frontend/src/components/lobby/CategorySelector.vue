@@ -76,13 +76,13 @@ onMounted(async () => {
 
 <style scoped>
 .category-section {
-  background: white;
-  border: 1px solid #e8e8e8;
+  background: var(--surface);
+  border: 1px solid var(--border);
   border-radius: 14px;
   padding: 1rem;
   height: 100%;
   box-sizing: border-box;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.04);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.35);
 }
 
 .section-header {
@@ -95,12 +95,12 @@ onMounted(async () => {
 .section-header h3 {
   margin: 0;
   font-size: 1.2rem;
-  color: #333;
+  color: var(--text-primary);
 }
 
 .host-badge {
-  background: #e8efff;
-  color: #2d7df6;
+  background: rgba(120, 136, 252, 0.15);
+  color: var(--accent-indigo);
   padding: 4px 10px;
   border-radius: 999px;
   font-size: 0.75rem;
@@ -108,7 +108,7 @@ onMounted(async () => {
 }
 
 .description {
-  color: #777;
+  color: var(--text-muted);
   margin-bottom: 1rem;
   font-size: 0.95rem;
 }
@@ -120,9 +120,9 @@ onMounted(async () => {
 }
 
 .category-button {
-  border: 1px solid #ddd;
-  background: #fafafa;
-  color: #444;
+  border: 1px solid var(--border);
+  background: #111111;
+  color: var(--text-secondary);
 
   padding: 0.75rem;
   border-radius: 10px;
@@ -137,14 +137,14 @@ onMounted(async () => {
 }
 
 .category-button:hover:not(:disabled):not(.selected) {
-  background: #f0f4ff;
-  border-color: #7888fc;
+  background: var(--surface-alt);
+  border-color: var(--accent-indigo);
   transform: translateY(-2px);
 }
 
 .category-button.selected {
-  background: #7888fc;
-  border-color: #7888fc;
+  background: var(--accent-blue);
+  border-color: var(--accent-blue);
   color: white;
 }
 
@@ -155,11 +155,11 @@ onMounted(async () => {
 
 .category-grid.disabled .selected {
   opacity: 1;
-  box-shadow: 0 0 0 3px rgba(120, 136, 252, 0.2);
+  box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.25);
 }
 
 .loading {
-  color: #777;
+  color: var(--text-muted);
   padding: 20px 0;
   text-align: center;
 }

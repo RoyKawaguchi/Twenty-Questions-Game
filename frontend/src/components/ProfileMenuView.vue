@@ -46,7 +46,7 @@ function handleLogOut() {
   </div>
 </template>
 
-<style>
+<style scoped>
 .profile-menu-container {
   position: relative;
 }
@@ -69,17 +69,17 @@ function handleLogOut() {
   min-width: 220px;
   padding: 1rem;
 
-  background: #2b2b2b;
-  color: #f5f5f5;
-  border: 1px solid #444;
-  border-radius: 6px;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.25);
+  background: var(--surface);
+  color: var(--text-primary);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.45);
 }
 
 .dropdown-header {
   margin-bottom: 1rem;
   padding-bottom: 0.75rem;
-  border-bottom: 1px solid #444;
+  border-bottom: 1px solid var(--border);
 }
 
 .dropdown-header h3,
@@ -88,10 +88,12 @@ function handleLogOut() {
 }
 
 .dropdown-header p {
-  color: #bdbdbd;
+  color: var(--text-muted);
 }
 
 .btn-danger {
   width: 100%;
+  border-radius: 8px;
+  padding: 8px;
 }
 </style>

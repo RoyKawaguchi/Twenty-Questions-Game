@@ -1,6 +1,21 @@
-/* Reset */
 * {
   box-sizing: border-box;
+}
+
+:root {
+  --surface: #1a1a1a;
+  --surface-alt: #27272a;
+  --border: #3f3f46;
+  --border-strong: #52525b;
+  --text-primary: #f3f4f6;
+  --text-secondary: #d4d4d8;
+  --text-muted: #a1a1aa;
+  --accent-indigo: #7888fc;
+  --accent-indigo-hover: #5b6cf5;
+  --accent-blue: #2563eb;
+  --accent-blue-hover: #1d4ed8;
+  --danger: #f87171;
+  --success: #22c55e;
 }
 
 html,
@@ -13,8 +28,8 @@ body,
 /* Base page */
 body {
   font-family: sans-serif;
-  background-color: #f5f5f5;
-  color: #222;
+  background-color: #222;
+  color: #f5f5f5;
 }
 
 /* Links */
@@ -37,10 +52,6 @@ button {
 
 /* Shared utility classes */
 
-.dropdown-header {
-  border-bottom: 1px solid #e5e5e5;
-}
-
 .btn-danger {
   background: #c30000 !important;
   color: white;
@@ -51,7 +62,13 @@ button {
 }
 
 .custom-link {
-  color: rgb(0, 102, 204);
-  font-weight: bold;
+  color: var(--accent-indigo);
+  font-weight: 600;
+  text-decoration: none;
+  transition: color 0.2s ease;
+}
+
+.custom-link:hover {
+  color: var(--accent-indigo-hover);
   text-decoration: underline;
 }

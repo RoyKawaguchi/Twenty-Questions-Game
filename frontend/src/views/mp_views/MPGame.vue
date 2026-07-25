@@ -241,12 +241,12 @@ async function focusQuestionInput() {
 .room-code-badge {
   font-size: 0.75rem;
   font-weight: 700;
-  background: #f3f4f6;
-  color: #4b5563;
+  background: var(--surface-alt);
+  color: var(--text-muted);
   padding: 3px 8px;
   border-radius: 6px;
   letter-spacing: 0.05em;
-  border: 1px solid #e5e7eb;
+  border: 1px solid var(--border);
 }
 
 .player-bar {
@@ -254,8 +254,8 @@ async function focusQuestionInput() {
   align-items: center;
   gap: 0.5rem;
   padding: 0.6rem 1rem;
-  background: #f9fafb;
-  border-bottom: 1px solid #f3f4f6;
+  background: #111111;
+  border-bottom: 1px solid var(--border);
   overflow-x: auto;
   white-space: nowrap;
   scrollbar-width: thin;
@@ -267,11 +267,11 @@ async function focusQuestionInput() {
   gap: 0.4rem;
   padding: 0.35rem 0.75rem;
   border-radius: 20px;
-  background: #ffffff;
-  border: 1px solid #e5e7eb;
+  background: var(--surface-alt);
+  border: 1px solid var(--border);
   font-size: 0.825rem;
   font-weight: 500;
-  color: #6b7280;
+  color: var(--text-muted);
   transition: all 0.2s ease;
 }
 

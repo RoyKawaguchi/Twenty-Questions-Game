@@ -32,7 +32,7 @@ h1 {
   font-size: clamp(1.5rem, 3vw, 2.25rem);
   font-weight: 700;
   text-align: center;
-  color: #222;
+  color: #f1f1f1;
 }
 
 iframe {

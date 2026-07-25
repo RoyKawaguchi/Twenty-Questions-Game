@@ -19,7 +19,7 @@ onMounted(async () => {
 
 <template>
   <div class="leaderboard-page">
-    <div class="leaderboard-card">
+    <div class="leaderboard-card gradient-card animate-in">
       <div class="leaderboard-header">
         <div>
           <h2>Leaderboard</h2>
@@ -85,10 +85,7 @@ onMounted(async () => {
 }
 
 .leaderboard-card {
-  background: white;
-  border: 1px solid #e8e8e8;
   border-radius: 14px;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
   padding: 24px;
 }
 
@@ -100,11 +97,12 @@ onMounted(async () => {
   margin: 0;
   font-size: 2rem;
   font-weight: 700;
+  color: #ffffff;
 }
 
 .leaderboard-header p {
   margin-top: 8px;
-  color: #666;
+  color: #a1a1aa;
   line-height: 1.5;
 }
 
@@ -116,24 +114,25 @@ onMounted(async () => {
 .leaderboard-table th {
   text-align: left;
   padding: 14px 18px;
-  background: #f7f7f7;
-  color: #666;
+  background: #27272a;
+  color: #a1a1aa;
   font-size: 0.9rem;
   font-weight: 600;
-  border-bottom: 2px solid #e8e8e8;
+  border-bottom: 2px solid #3f3f46;
 }
 
 .leaderboard-table td {
   padding: 16px 18px;
-  border-bottom: 1px solid #eee;
+  border-bottom: 1px solid #3f3f46;
+  color: #f3f4f6;
 }
 
 .leaderboard-table tbody tr {
-  transition: background 0.15s ease;
+  transition: background-color 0.15s ease;
 }
 
 .leaderboard-table tbody tr:hover {
-  background: #fafafa;
+  background: #222225;
 }
 
 .leaderboard-table tbody tr:last-child td {
@@ -143,6 +142,7 @@ onMounted(async () => {
 .position {
   font-weight: 700;
   width: 80px;
+  color: #ffffff;
 }
 
 .username {
@@ -150,26 +150,26 @@ onMounted(async () => {
 }
 
 .currentUser {
-  background: #f5f9ff;
+  background: rgba(37, 99, 235, 0.12);
 }
 
 .currentUser:hover {
-  background: #edf5ff !important;
+  background: rgba(37, 99, 235, 0.18) !important;
 }
 
 .you-tag {
   margin-left: 10px;
   padding: 3px 10px;
   border-radius: 999px;
-  background: #dcebff;
-  color: #2d7df6;
+  background: rgba(37, 99, 235, 0.18);
+  color: #60a5fa;
   font-size: 0.75rem;
   font-weight: 600;
 }
 
 .empty-state {
   text-align: center;
-  color: #777;
+  color: #a1a1aa;
   padding: 60px 20px;
 }
 
@@ -181,5 +181,41 @@ onMounted(async () => {
   padding: 6px 14px;
   border-radius: 999px;
   font-weight: 600;
+}
+
+/* Rank colors */
+.rank-bronze {
+  background: rgba(180, 83, 9, 0.18);
+  color: #fbbf24;
+}
+
+.rank-silver {
+  background: rgba(107, 114, 128, 0.18);
+  color: #d1d5db;
+}
+
+.rank-gold {
+  background: rgba(234, 179, 8, 0.18);
+  color: #facc15;
+}
+
+.rank-platinum {
+  background: rgba(6, 182, 212, 0.18);
+  color: #67e8f9;
+}
+
+.rank-diamond {
+  background: rgba(59, 130, 246, 0.18);
+  color: #93c5fd;
+}
+
+.rank-master {
+  background: rgba(147, 51, 234, 0.18);
+  color: #c084fc;
+}
+
+.rank-grandmaster {
+  background: rgba(220, 38, 38, 0.18);
+  color: #f87171;
 }
 </style>

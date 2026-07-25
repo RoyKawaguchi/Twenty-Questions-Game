@@ -1,5 +1,26 @@
-<script>
+<script setup>
+import { onMounted } from 'vue'
 import { RouterLink } from 'vue-router'
+
+onMounted(() => {
+  const observer = new IntersectionObserver(
+    (entries) => {
+      entries.forEach((entry) => {
+        if (entry.isIntersecting) {
+          entry.target.classList.add('visible')
+          observer.unobserve(entry.target)
+        }
+      })
+    },
+    {
+      threshold: 0.15,
+    },
+  )
+
+  document.querySelectorAll('.reveal').forEach((el) => {
+    observer.observe(el)
+  })
+})
 </script>
 
 <template>
@@ -16,7 +37,7 @@ import { RouterLink } from 'vue-router'
 
     <main class="content-wrapper">
       <!-- PURPOSE & OVERVIEW SECTION -->
-      <section class="info-card purpose-card">
+      <section class="info-card reveal purpose-card">
         <h2>What is <span class="logo logo-medium">::twenty</span>?</h2>
         <p>
           <strong>::twenty</strong> brings a modern, AI twist to the timeless guessing game of
@@ -35,7 +56,7 @@ import { RouterLink } from 'vue-router'
 
         <div class="grid-two-col">
           <!-- SINGLEPLAYER -->
-          <div class="info-card mode-card">
+          <div class="info-card reveal mode-card">
             <div class="card-header">
               <h3>
                 <span class="custom-link"
@@ -66,7 +87,7 @@ import { RouterLink } from 'vue-router'
           </div>
 
           <!-- MULTIPLAYER -->
-          <div class="info-card mode-card">
+          <div class="info-card reveal mode-card">
             <div class="card-header">
               <h3>
                 <span class="custom-link"
@@ -102,7 +123,7 @@ import { RouterLink } from 'vue-router'
         <h2 class="section-heading">The Vision & Motivation</h2>
         <div class="grid-two-col">
           <!-- ORIGIN IDEA -->
-          <div class="info-card">
+          <div class="info-card reveal">
             <h3>Flipping the Script on Akinator</h3>
             <p class="card-text">
               <strong>::twenty</strong> takes heavy inspiration from the all-time classic,
@@ -120,7 +141,7 @@ import { RouterLink } from 'vue-router'
           </div>
 
           <!-- BRAIN NOURISHMENT -->
-          <div class="info-card">
+          <div class="info-card reveal">
             <h3>Brain Rotting ➡ Brain Nourishment</h3>
             <p class="card-text">
               In this godforesaken era filled with short-form, dopamine-gushing, brain-rotting
@@ -142,7 +163,7 @@ import { RouterLink } from 'vue-router'
 
       <!-- WHY AI WAS NECESSARY -->
       <section class="section-block">
-        <div class="info-card highlight-card">
+        <div class="info-card reveal highlight-card">
           <h3>Why AI? Solving the Impossible</h3>
           <p class="card-text">
             Why am I single-handedly destroying the planet by using AI? Thank you for asking.
@@ -183,7 +204,7 @@ import { RouterLink } from 'vue-router'
       <section class="section-block">
         <div class="grid-two-col">
           <!-- TECH STACK -->
-          <div class="info-card">
+          <div class="info-card reveal">
             <h3>Tech Architecture</h3>
             <ul class="tech-tags">
               <li>Vue.js</li>
@@ -209,7 +230,7 @@ import { RouterLink } from 'vue-router'
           </div>
 
           <!-- ABOUT CREATOR -->
-          <div class="info-card creator-card">
+          <div class="info-card reveal creator-card">
             <h3>About the Creator</h3>
             <p>
               Hi, I'm <strong>Roy Kawaguchi</strong>, a Computer Science student based in Tokyo!
@@ -222,7 +243,7 @@ import { RouterLink } from 'vue-router'
             </p>
             <p>I hope you enjoy<strong>::twenty</strong> as much I do!</p>
             <a
-              href="https://github.com/RoyKawaguchi"
+              href="https://github.com/RoyKawaguchi/Twenty-Questions-Game"
               target="_blank"
               rel="noopener noreferrer"
               class="github-btn"
@@ -246,8 +267,7 @@ import { RouterLink } from 'vue-router'
 /* GENERAL LAYOUT */
 .about-container {
   min-height: 100vh;
-  background-color: #f8fafc;
-  color: #1e293b;
+  color: #f3f4f6;
   font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
   padding-bottom: 4rem;
 }
@@ -260,8 +280,8 @@ import { RouterLink } from 'vue-router'
 
 /* HERO BANNER */
 .hero-banner {
-  background: linear-gradient(135deg, #ffffff 0%, #f1f5f9 100%);
-  border-bottom: 1px solid #e2e8f0;
+  background: linear-gradient(200deg, #111111 0%, #1a1a1a 100%);
+  border-bottom: 3px solid #27272a;
   padding: 4.5rem 1.5rem 3.5rem;
   text-align: center;
   margin-bottom: 2.5rem;
@@ -272,6 +292,7 @@ import { RouterLink } from 'vue-router'
   font-weight: 800;
   letter-spacing: -0.05em;
   margin: 0 0 0.5rem 0;
+  color: #ffffff;
 }
 
 .logo-medium {
@@ -280,10 +301,12 @@ import { RouterLink } from 'vue-router'
   letter-spacing: -0.05em;
   margin: 0 0 0.5rem 0;
   padding-right: 5px;
+  color: #ffffff;
 }
+
 .tagline {
   font-size: 1.25rem;
-  color: #64748b;
+  color: #a1a1aa;
   margin: 0;
   font-weight: 400;
 }
@@ -297,27 +320,27 @@ import { RouterLink } from 'vue-router'
   font-size: 1.5rem;
   font-weight: 700;
   margin-bottom: 1rem;
-  color: #0f172a;
+  color: #ffffff;
 }
 
 .info-card {
-  background: #ffffff;
-  border: 1px solid #e2e8f0;
+  background: #1a1a1a;
+  border: 1px solid #3f3f46;
   border-radius: 12px;
   padding: 1.75rem;
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.35);
 }
 
 .info-card h3 {
   margin-top: 0;
   font-size: 1.25rem;
-  color: #0f172a;
+  color: #ffffff;
   margin-bottom: 0.75rem;
 }
 
 .card-text {
   line-height: 1.6;
-  color: #334155;
+  color: #d4d4d8;
   margin-bottom: 0.75rem;
 }
 
@@ -334,6 +357,7 @@ import { RouterLink } from 'vue-router'
 .purpose-card h2 {
   margin-top: 0;
   font-size: 1.5rem;
+  color: #ffffff;
 }
 
 .highlight-card {
@@ -341,7 +365,7 @@ import { RouterLink } from 'vue-router'
 }
 
 .accent-text {
-  color: #2563eb;
+  color: #60a5fa;
   font-family: monospace, monospace;
 }
 
@@ -373,8 +397,8 @@ import { RouterLink } from 'vue-router'
 }
 
 .mode-badge {
-  background-color: #eff6ff;
-  color: #2563eb;
+  background-color: rgba(37, 99, 235, 0.15);
+  color: #60a5fa;
   font-size: 0.75rem;
   font-weight: 700;
   padding: 0.3rem 0.6rem;
@@ -383,15 +407,15 @@ import { RouterLink } from 'vue-router'
 }
 
 .multiplayer-badge {
-  background-color: #fef2f2;
-  color: #dc2626;
+  background-color: rgba(220, 38, 38, 0.15);
+  color: #f87171;
 }
 
 .step-list {
   padding-left: 1.25rem;
   margin: 0;
   line-height: 1.6;
-  color: #334155;
+  color: #d4d4d8;
 }
 
 .step-list li {
@@ -413,25 +437,25 @@ import { RouterLink } from 'vue-router'
 }
 
 .tech-tags li {
-  background-color: #f1f5f9;
-  color: #334155;
+  background-color: #27272a;
+  color: #e5e7eb;
   font-size: 0.85rem;
   font-weight: 600;
   padding: 0.3rem 0.7rem;
   border-radius: 6px;
-  border: 1px solid #cbd5e1;
+  border: 1px solid #3f3f46;
 }
 
 .tech-description {
   font-size: 0.9rem;
-  color: #64748b;
+  color: #a1a1aa;
   margin: 1;
   line-height: 1.5;
 }
 
 .creator-card p {
   line-height: 1.6;
-  color: #334155;
+  color: #d4d4d8;
   margin-bottom: 1.5rem;
 }
 
@@ -439,7 +463,7 @@ import { RouterLink } from 'vue-router'
   display: inline-flex;
   align-items: center;
   gap: 0.5rem;
-  background-color: #0f172a;
+  background-color: #000000;
   color: #ffffff;
   padding: 0.6rem 1.2rem;
   border-radius: 8px;
@@ -450,10 +474,30 @@ import { RouterLink } from 'vue-router'
 }
 
 .github-btn:hover {
-  background-color: #1e293b;
+  background-color: #333333;
 }
 
 .github-icon {
   fill: currentColor;
+}
+
+/* Reveal animation */
+/* SCROLL REVEAL */
+.reveal {
+  opacity: 0;
+  transform: translateY(40px);
+  transition:
+    opacity 0.7s ease,
+    transform 0.7s ease;
+}
+
+.reveal.visible {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+/* optional: nicer stagger effect */
+.grid-two-col .reveal:nth-child(2) {
+  transition-delay: 0.15s;
 }
 </style>

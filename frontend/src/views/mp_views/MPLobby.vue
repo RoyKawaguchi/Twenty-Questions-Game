@@ -106,7 +106,7 @@ function handleBeforeUnload(event) {
 <template>
   <div class="lobby-container">
     <!-- Prominent Room Code Header -->
-    <div class="room-header">
+    <div class="room-header gradient-card animate-in">
       <h2>
         Room Code: <strong>{{ roomCode }}</strong>
       </h2>
@@ -145,7 +145,7 @@ function handleBeforeUnload(event) {
 
 <style scoped>
 .lobby-container {
-  max-width: 800px;
+  max-width: 1000px;
   margin: 0 auto;
   padding: 2rem 1rem;
 }
@@ -154,14 +154,7 @@ function handleBeforeUnload(event) {
   display: grid;
   grid-template-columns: 1fr 1fr;
   gap: 1rem;
-  margin: 0rem 0;
   align-items: stretch;
-}
-
-.lobby-container {
-  max-width: 1000px;
-  margin: 0 auto;
-  padding: 2rem 1rem;
 }
 
 .room-header {
@@ -169,12 +162,11 @@ function handleBeforeUnload(event) {
   justify-content: space-between;
   align-items: center;
 
-  padding: 0.25rem 2rem;
-  margin-bottom: 0rem;
+  padding: 0.75rem 2rem;
+  margin-bottom: 1rem;
 
-  background: #fafafa;
-  border: 1px solid #ddd;
   border-radius: 12px;
+  color: var(--text-primary);
 }
 
 .room-header h2 {
@@ -184,8 +176,9 @@ function handleBeforeUnload(event) {
 }
 
 .copy-btn {
-  background: white;
-  border: 1px solid #ccc;
+  background: var(--surface-alt);
+  color: var(--text-primary);
+  border: 1px solid var(--border);
   padding: 0.5rem 1rem;
   margin-left: 1rem;
   border-radius: 8px;
@@ -195,43 +188,32 @@ function handleBeforeUnload(event) {
 }
 
 .copy-btn:hover {
-  background: #f3f4f6;
+  background: #323238;
+  border-color: var(--border-strong);
 }
-
-.action-footer {
-  margin-top: 0rem;
-  text-align: center;
-}
-
-.action-footer {
-  margin: 0rem 0;
-  text-align: center;
-}
-
-/* Inherits your global .play-btn */
 
 .status-hint {
   margin-top: 0.5rem;
-  color: #666;
+  color: var(--text-muted);
   font-size: 0.9rem;
   font-weight: 500;
 }
 
 .status-hint.ready {
-  color: #16a34a; /* Green text when ready */
+  color: #4ade80;
 }
 
 .lobby-footer {
   display: grid;
   grid-template-columns: 1fr 1fr;
   gap: 1rem;
-  margin-top: 0rem;
+  margin-top: 1rem;
   align-items: stretch;
 }
 
 .action-footer {
-  background: #fafafa;
-  border: 1px solid #ddd;
+  background: var(--surface);
+  border: 1px solid var(--border);
   border-radius: 12px;
   padding: 1rem;
 

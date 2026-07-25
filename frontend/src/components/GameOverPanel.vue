@@ -61,7 +61,7 @@ const mpPlayerResults = computed(() => {
 </script>
 
 <template>
-  <div class="game-over-panel">
+  <div class="game-over-panel gradient-card animate-in">
     <!-- Zone 1: Outcome & Secret Answer Hero -->
     <div class="outcome-header">
       <h3 :class="isWin ? 'outcome-win' : 'outcome-loss'">
@@ -169,12 +169,7 @@ const mpPlayerResults = computed(() => {
   flex-shrink: 0;
   margin: 1.5rem 1rem;
   padding: 2rem;
-  background: #ffffff;
   border-radius: 20px;
-  box-shadow:
-    0 12px 30px -10px rgba(0, 0, 0, 0.08),
-    0 4px 12px -2px rgba(0, 0, 0, 0.04);
-  border: 1px solid #f3f4f6;
   text-align: center;
   max-width: 500px;
   width: calc(100% - 2rem);
@@ -188,16 +183,16 @@ const mpPlayerResults = computed(() => {
 }
 
 .outcome-win {
-  color: #16a34a;
+  color: #4ade80;
 }
 
 .outcome-loss {
-  color: #dc2626;
+  color: #f87171;
 }
 
 .secret-answer-card {
-  background: #f9fafb;
-  border: 1px solid #eaecf0;
+  background: var(--surface-alt);
+  border: 1px solid var(--border);
   border-radius: 12px;
   padding: 12px;
   margin: 0 auto 1rem auto;
@@ -208,7 +203,7 @@ const mpPlayerResults = computed(() => {
   display: block;
   font-size: 0.65rem;
   font-weight: 700;
-  color: #6b7280;
+  color: var(--text-muted);
   letter-spacing: 0.08em;
   margin-bottom: 2px;
 }
@@ -216,18 +211,18 @@ const mpPlayerResults = computed(() => {
 .secret-answer-card .answer-text {
   font-size: 1.25rem;
   font-weight: 700;
-  color: #111827;
+  color: var(--text-primary);
 }
 
 .sub-message,
 .forfeit-notice {
   font-size: 0.95rem;
-  color: #4b5563;
+  color: var(--text-secondary);
   margin-bottom: 1.5rem;
 }
 
 .forfeit-notice {
-  color: #dc2626;
+  color: #f87171;
   font-weight: 600;
 }
 
@@ -240,13 +235,13 @@ const mpPlayerResults = computed(() => {
 
 .stat-subtext {
   font-size: 0.75rem;
-  color: #6b7280;
+  color: var(--text-muted);
   margin-bottom: 4px;
 }
 
 .stat-card {
-  background: #ffffff;
-  border: 1px solid #e5e7eb;
+  background: var(--surface-alt);
+  border: 1px solid var(--border);
   border-radius: 12px;
   padding: 12px;
   display: flex;
@@ -255,17 +250,17 @@ const mpPlayerResults = computed(() => {
 }
 
 .stat-card.highlight {
-  background: #f0fdf4;
-  border-color: #bbf7d0;
+  background: rgba(34, 197, 94, 0.12);
+  border-color: rgba(34, 197, 94, 0.3);
 }
 
 .stat-card.highlight .stat-value {
-  color: #16a34a;
+  color: #4ade80;
 }
 
 .stat-label {
   font-size: 0.75rem;
-  color: #6b7280;
+  color: var(--text-muted);
   font-weight: 600;
   margin-bottom: 4px;
 }
@@ -273,17 +268,17 @@ const mpPlayerResults = computed(() => {
 .stat-value {
   font-size: 1.35rem;
   font-weight: 800;
-  color: #111827;
+  color: var(--text-primary);
 }
 
 .career-stats-container {
   display: grid;
   grid-template-columns: repeat(2, 1fr);
   gap: 10px;
-  background: #f9fafb;
+  background: var(--surface-alt);
   border-radius: 12px;
   padding: 12px;
-  border: 1px solid #f3f4f6;
+  border: 1px solid var(--border);
   margin-bottom: 1.5rem;
 }
 
@@ -295,21 +290,21 @@ const mpPlayerResults = computed(() => {
 
 .c-label {
   font-size: 0.7rem;
-  color: #6b7280;
+  color: var(--text-muted);
   font-weight: 500;
 }
 
 .c-value {
   font-size: 0.95rem;
   font-weight: 700;
-  color: #1f2937;
+  color: var(--text-primary);
 }
 
 .mp-summary-container {
-  background: #f9fafb;
+  background: var(--surface-alt);
   border-radius: 12px;
   padding: 16px;
-  border: 1px solid #f3f4f6;
+  border: 1px solid var(--border);
   margin-bottom: 1.5rem;
   text-align: left;
 }
@@ -318,7 +313,7 @@ const mpPlayerResults = computed(() => {
   margin: 0 0 12px 0;
   font-size: 0.85rem;
   font-weight: 700;
-  color: #6b7280;
+  color: var(--text-muted);
   text-transform: uppercase;
   letter-spacing: 0.05em;
 }
@@ -334,15 +329,15 @@ const mpPlayerResults = computed(() => {
   justify-content: space-between;
   align-items: center;
   padding: 8px 12px;
-  background: #ffffff;
-  border: 1px solid #eaecf0;
+  background: #111111;
+  border: 1px solid var(--border);
   border-radius: 8px;
   font-size: 0.95rem;
 }
 
 .mp-player-name {
   font-weight: 600;
-  color: #111827;
+  color: var(--text-primary);
   display: flex;
   align-items: center;
   gap: 8px;
@@ -350,14 +345,14 @@ const mpPlayerResults = computed(() => {
 
 .mp-rank {
   font-size: 0.8rem;
-  color: #9ca3af;
+  color: var(--text-muted);
   font-weight: 700;
   width: 16px;
 }
 
 .mp-player-turns {
   font-weight: 500;
-  color: #6b7280;
+  color: var(--text-muted);
   font-size: 0.85rem;
 }
 
@@ -378,23 +373,23 @@ const mpPlayerResults = computed(() => {
 }
 
 .btn-primary {
-  background-color: #000000;
+  background-color: var(--accent-indigo);
   color: #ffffff;
   border: none;
 }
 
 .btn-primary:hover {
-  background-color: #262626;
+  background-color: var(--accent-indigo-hover);
 }
 
 .btn-secondary {
-  background-color: #ffffff;
-  color: #374151;
-  border: 1px solid #d1d5db;
+  background-color: transparent;
+  color: var(--text-secondary);
+  border: 1px solid var(--border);
 }
 
 .btn-secondary:hover {
-  background-color: #f3f4f6;
+  background-color: var(--surface-alt);
 }
 
 .game-over-actions button:active {

@@ -82,9 +82,6 @@ def create_game_session(category, game_mode, user=None, room_code=None, players=
         shuffled_players = players.copy()
         random.shuffle(shuffled_players)
 
-        if players is None:
-            print("room['players'] found to be None! VERY BAD")
-
         session_record.update({
             "room_code": room_code,
             "players": players,

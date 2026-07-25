@@ -1,33 +1,62 @@
-/* src/assets/game-layout.css */
-
 .game-container {
   display: flex;
   flex-direction: column;
   height: 100vh;
   max-width: 900px;
   margin: 0 auto;
-  background-color: #ffffff;
-  overflow-y: auto; /* Allows container to scroll if Game Over panel extends past 100vh */
+  background-color: #0f0f0f;
+  color: #f3f4f6;
+  overflow-y: auto;
 }
 
 .game-header {
+  position: relative;
+  overflow: hidden;
+
   padding: 1.5rem 1rem 1rem;
   text-align: center;
-  border-bottom: 1px solid #f3f4f6;
-  background: #ffffff;
+  border-bottom: 1px solid #27272a;
   z-index: 10;
+
+  background:
+    radial-gradient(circle at top right, rgba(99, 102, 241, 0.28), transparent 50%),
+    linear-gradient(135deg, #1e1b4b, #0f172a);
+
+  animation: headerFadeIn 0.5s ease;
+}
+
+.game-header::after {
+  content: '';
+
+  position: absolute;
+  width: 200px;
+  height: 200px;
+
+  top: -70px;
+  right: -60px;
+
+  background: rgba(99, 102, 241, 0.18);
+  border-radius: 50%;
+
+  filter: blur(20px);
+  pointer-events: none;
+}
+
+.game-header > * {
+  position: relative;
+  z-index: 1;
 }
 
 .game-header h2 {
   margin: 0 0 0.25rem 0;
   font-weight: 700;
   font-size: 1.5rem;
-  color: #111827;
+  color: #ffffff;
 }
 
 .game-header p {
   margin: 0;
-  color: #6b7280;
+  color: #a1a1aa;
   font-size: 0.95rem;
 }
 
@@ -35,8 +64,9 @@
   margin-top: 1rem !important;
   font-size: 0.85rem;
   display: inline-block;
-  background: #f3f4f6;
-  color: #374151;
+  background: rgba(99, 102, 241, 0.15);
+  border: 1px solid rgba(99, 102, 241, 0.35);
+  color: #e5e7eb;
   padding: 6px 14px;
   border-radius: 20px;
   font-weight: 600;
@@ -44,8 +74,8 @@
 
 .chat-inputs {
   padding: 1rem;
-  background: #ffffff;
-  border-top: 1px solid #f3f4f6;
+  background: #111111;
+  border-top: 1px solid #27272a;
   display: flex;
   flex-direction: column;
   gap: 0.75rem;
@@ -59,28 +89,35 @@
 .input-row input {
   flex: 1;
   padding: 0.8rem 1.25rem;
-  border: 1px solid #d1d5db;
-  border-radius: 24px; /* Modern pill shape */
+  border: 1px solid #3f3f46;
+  border-radius: 24px;
   outline: none;
-  background-color: #ffffff;
+  background-color: #1a1a1a;
+  color: #f3f4f6;
   transition:
     border-color 0.2s ease,
-    box-shadow 0.2s ease;
+    box-shadow 0.2s ease,
+    background-color 0.2s ease;
+}
+
+.input-row input::placeholder {
+  color: #71717a;
 }
 
 .input-row input:focus {
-  border-color: #000000;
-  box-shadow: 0 0 0 3px rgba(0, 0, 0, 0.05);
+  border-color: #ffffff;
+  box-shadow: 0 0 0 3px rgba(255, 255, 255, 0.08);
 }
 
 .input-row input:disabled {
-  background-color: #f9fafb;
+  background-color: #18181b;
+  color: #71717a;
   cursor: not-allowed;
 }
 
 .input-row button {
   padding: 0.8rem 1.5rem;
-  background-color: #000000; /* Matches your nav bar */
+  background-color: #000000;
   color: #ffffff;
   border: none;
   border-radius: 24px;
@@ -103,32 +140,48 @@
   display: flex;
   justify-content: center;
   gap: 1rem;
-  padding: 0.5rem 1rem 1.5rem 1rem;
-  background: #ffffff;
+  padding: 0.5rem 1rem 1.5rem;
+  background: #111111;
 }
 
 .game-actions button {
-  padding: 0.5rem 1rem;
-  background: #ffffff;
-  color: #374151;
-  border: 1px solid #d1d5db;
-  border-radius: 8px;
+  flex: 1;
+  max-width: 220px;
+  padding: 0.8rem 1.5rem;
+  background: #1a1a1a;
+  color: #e5e7eb;
+  border: 1px solid #3f3f46;
+  border-radius: 24px;
   font-weight: 600;
-  font-size: 0.85rem;
+  font-size: 0.9rem;
   cursor: pointer;
-  transition: background-color 0.2s;
+  transition:
+    background-color 0.2s,
+    border-color 0.2s;
 }
 
 .game-actions button:hover {
-  background: #f3f4f6;
+  background: #27272a;
+  border-color: #52525b;
 }
 
 .game-actions .danger-btn {
-  color: #dc2626;
-  border-color: #fecaca;
-  background: #fef2f2;
+  color: #f87171;
+  border-color: #7f1d1d;
+  background: #2b1111;
 }
 
 .game-actions .danger-btn:hover {
-  background: #fee2e2;
+  background: #3b1616;
+}
+
+@keyframes headerFadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(-10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
 }

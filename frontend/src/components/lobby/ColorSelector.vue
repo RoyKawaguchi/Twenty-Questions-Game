@@ -62,17 +62,18 @@ const handleColorSelect = (colorId) => {
 
 <style scoped>
 .color-selector {
-  background: #fafafa;
+  background: var(--surface);
   padding: 1rem;
   border-radius: 12px;
-  border: 1px solid #eee;
+  border: 1px solid var(--border);
   text-align: center;
 }
 
 .color-selector h5 {
   margin-top: 0;
   margin-bottom: 0.7rem;
-  color: grey;
+  color: var(--text-muted);
+  font-weight: 500;
 }
 
 .color-grid {
@@ -120,7 +121,7 @@ const handleColorSelect = (colorId) => {
   width: 150%;
   height: 3px;
 
-  background: rgba(0, 0, 0, 0.55);
+  background: rgba(0, 0, 0, 0.6);
 
   transform: translate(-50%, -50%) rotate(-45deg);
 
