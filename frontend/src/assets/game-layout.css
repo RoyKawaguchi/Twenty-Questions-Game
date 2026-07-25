@@ -6,12 +6,12 @@
   margin: 0 auto;
   background-color: #0f0f0f;
   color: #f3f4f6;
-  overflow-y: auto;
+  /* overflow-y: auto; */
 }
 
 .game-header {
   position: relative;
-  overflow: hidden;
+  overflow: visible;
 
   padding: 1.5rem 1rem 1rem;
   text-align: center;

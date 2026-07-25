@@ -108,7 +108,7 @@ function handleBeforeUnload(event) {
     <!-- Prominent Room Code Header -->
     <div class="room-header gradient-card animate-in">
       <h2>
-        Room Code: <strong>{{ roomCode }}</strong>
+        Room Code: <span class="room-code">{{ roomCode }}</span>
       </h2>
       <button class="copy-btn" @click="copyRoomCode">
         {{ copySuccess ? '✅ Copied!' : '📋 Copy Code' }}
@@ -173,6 +173,11 @@ function handleBeforeUnload(event) {
   margin: 0;
   font-size: 1.35rem;
   letter-spacing: 1px;
+}
+
+.room-code {
+  padding-left: 10px;
+  font-size: 1.75rem;
 }
 
 .copy-btn {

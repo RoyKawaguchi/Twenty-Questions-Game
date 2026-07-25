@@ -10,6 +10,8 @@ const gameStore = useGameStore()
 
 const pausedGame = ref(null)
 
+const loading = ref(true)
+
 const categories = ref([])
 const selectedCategory = ref(null)
 
@@ -62,29 +64,34 @@ function forfeitGame() {
 }
 
 onMounted(async () => {
+  loading.value = true
+
   try {
     initializeSocketConnection()
 
-    const data = await getUserInfo()
-    if (data.activeGame) {
-      console.log('active game found!')
-      pausedGame.value = data.activeGame
+    const userData = await getUserInfo()
+    if (userData.activeGame) {
+      pausedGame.value = userData.activeGame
     }
-  } catch (error) {
-    console.error('Failed to load user info', error)
-  }
 
-  try {
-    const data = await fetchCategories()
-    categories.value = data.categories || []
+    const categoryData = await fetchCategories()
+    categories.value = categoryData.categories || []
   } catch (error) {
-    console.error('Failed to load categories', error)
+    console.error('Failed to initialise lobby', error)
+  } finally {
+    loading.value = false
   }
 })
 </script>
 
 <template>
   <div class="lobby-container">
+    <div v-if="loading" class="loading-card">
+      <div class="loading-spinner"></div>
+      <h2>Loading...</h2>
+      <p>Preparing your game.</p>
+    </div>
+
     <div v-if="pausedGame" class="resume-card gradient-card animate-in">
       <h2>Resume Your Game</h2>
 
