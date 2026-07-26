@@ -1,18 +1,35 @@
 <script setup>
 import { ref, onMounted } from 'vue'
 import { useAuthStore } from '../stores/authStore'
+import { initializeSocketConnection } from '../services/socket'
 import { getLeaderboard } from '../services/api'
+import { logout } from '../services/authService.js'
 
 const authStore = useAuthStore()
+
+const loading = ref(true)
+const failed = ref(false)
 
 const leaderboard = ref([])
 
 onMounted(async () => {
   try {
+    initializeSocketConnection()
+  } catch (error) {
+    alert('Session ran out. Please login again!')
+    logout()
+  }
+
+  loading.value = true
+  failed.value = false
+  try {
     const data = await getLeaderboard()
     leaderboard.value = data.leaderboard || []
   } catch (err) {
     console.error('Failed to load leaderboard:', err)
+    failed.value = true
+  } finally {
+    loading.value = false
   }
 })
 </script>
@@ -30,11 +47,23 @@ onMounted(async () => {
         </div>
       </div>
 
-      <div v-if="leaderboard.length === 0" class="empty-state">
+      <div v-if="loading" class="status-card loading-card">
+        <div class="loading-spinner"></div>
+        <h2>Loading...</h2>
+        <p>Fetching leaderboard information.</p>
+      </div>
+
+      <div v-else-if="failed" class="failed-card loading-card">
+        <h2>Error</h2>
+        <p>Leaderboard information could not be fetched.</p>
+        <p>Please try reloading the page.</p>
+      </div>
+
+      <div v-else-if="leaderboard.length === 0" class="empty-state">
         <p>No ranked investigators found yet. Complete 5 matches to claim your spot!</p>
       </div>
 
-      <table v-else class="leaderboard-table">
+      <table v-else-if="true" class="leaderboard-table">
         <thead>
           <tr>
             <th>Rank</th>
@@ -82,6 +111,11 @@ onMounted(async () => {
   max-width: 900px;
   margin: 40px auto;
   padding: 0 20px;
+}
+
+.loading-card {
+  width: inherit;
+  margin-left: 0.5rem;
 }
 
 .leaderboard-card {

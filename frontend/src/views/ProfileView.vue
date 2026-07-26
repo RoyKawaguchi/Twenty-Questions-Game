@@ -1,11 +1,16 @@
 <script setup>
 import { ref, computed, onMounted } from 'vue'
 
+import { initializeSocketConnection } from '../services/socket'
 import { getUserInfo } from '../services/api'
 import { useAuthStore } from '../stores/authStore'
 import MatchHistoryRow from '../components/MatchHistoryRow.vue'
+import { logout } from '../services/authService.js'
 
 const authStore = useAuthStore()
+
+const loading = ref(true)
+const failed = ref(false)
 
 const userInfo = ref(null)
 const activeTab = ref('singleplayer')
@@ -35,58 +40,84 @@ const rankNote = computed(() => {
 
 onMounted(async () => {
   try {
+    initializeSocketConnection()
+  } catch (error) {
+    alert('Session ran out. Please login again!')
+    logout()
+  }
+
+  loading.value = true
+  failed.value = false
+  try {
     const data = await getUserInfo()
     userInfo.value = data
   } catch (err) {
     console.error('Failed to load user info:', err)
+    failed.value = true
+  } finally {
+    loading.value = false
   }
 })
 </script>
 <template>
-  <div class="profile-page" v-if="userInfo">
-    <div class="profile-card gradient-card animate-in">
-      <div class="profile-header">
-        <h2>User Profile</h2>
+  <div class="profile-page">
+    <div :class="['profile-card', 'gradient-card', 'animate-in', { failed: failed }]">
+      <template v-if="loading">
+        <div class="loading-spinner"></div>
+        <h2>Loading...</h2>
+        <p>Fetching user profile information.</p>
+      </template>
 
-        <h3>
-          {{ userInfo.username }}
-          <span v-if="userInfo.isGuest" class="guest-tag">Guest</span>
-        </h3>
-      </div>
+      <template v-else-if="failed">
+        <h2>Error</h2>
+        <p>User profile information could not be fetched.</p>
+        <p>Please try reloading the page.</p>
+      </template>
 
-      <div class="stats-grid">
-        <div class="stat">
-          <span class="label">XP</span>
-          <span class="value">{{ userInfo.xp }}</span>
+      <template v-else>
+        <div class="profile-header">
+          <h2>User Profile</h2>
+
+          <h3>
+            {{ userInfo.username }}
+            <span v-if="userInfo.isGuest" class="guest-tag">Guest</span>
+          </h3>
         </div>
 
-        <div class="stat">
-          <span class="label">Rating</span>
-          <span class="value">
-            {{ userInfo.isGuest ? '0.0' : userInfo.rating }}
-          </span>
+        <div class="stats-grid">
+          <div class="stat">
+            <span class="label">XP</span>
+            <span class="value">{{ userInfo.xp }}</span>
+          </div>
+
+          <div class="stat">
+            <span class="label">Rating</span>
+            <span class="value">
+              {{ userInfo.isGuest ? '0.0' : userInfo.rating }}
+            </span>
+          </div>
+
+          <div class="stat">
+            <span class="label">Win Rate</span>
+            <span class="value">{{ userInfo.winRate }}%</span>
+          </div>
+
+          <div class="stat">
+            <span class="label">Rank</span>
+
+            <span :class="['value', `rank-${userInfo.rank.toLowerCase()}`]">
+              {{ userInfo.rank }}
+            </span>
+          </div>
         </div>
 
-        <div class="stat">
-          <span class="label">Win Rate</span>
-          <span class="value">{{ userInfo.winRate }}%</span>
-        </div>
-
-        <div class="stat">
-          <span class="label">Rank</span>∑
-
-          <span :class="['value', `rank-${userInfo.rank.toLowerCase()}`]">
-            {{ userInfo.rank }}
-          </span>
-        </div>
-      </div>
-
-      <p class="rank-note">
-        {{ rankNote }}
-      </p>
+        <p class="rank-note">
+          {{ rankNote }}
+        </p>
+      </template>
     </div>
 
-    <div class="history-card">
+    <div v-if="!loading && !failed" class="history-card">
       <div class="history-header">
         <h3>Match History</h3>
 
@@ -142,6 +173,16 @@ onMounted(async () => {
 </template>
 
 <style scoped>
+.loading-card {
+  width: inherit;
+  margin-left: 0.5rem;
+}
+
+.profile-card.failed h2 {
+  margin: 0;
+  color: red;
+}
+
 .profile-page {
   max-width: 900px;
   margin: 40px auto;

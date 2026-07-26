@@ -241,8 +241,7 @@
 }
 
 /* Loading ANIMATION */
-
-.loading-card {
+.status-card {
   width: min(420px, 100%);
   padding: 2.5rem;
   border-radius: 16px;
@@ -258,14 +257,22 @@
   gap: 1rem;
 }
 
-.loading-card h2 {
+.status-card h2 {
   margin: 0;
   color: white;
 }
 
-.loading-card p {
+.status-card p {
   margin: 0;
   color: #a1a1aa;
+}
+
+.loading-card h2 {
+  color: white;
+}
+
+.failed-card h2 {
+  color: #ef4444; /* red */
 }
 
 .loading-spinner {

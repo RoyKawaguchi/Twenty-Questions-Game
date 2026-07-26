@@ -256,7 +256,6 @@ def get_leaderboard(current_user):
         # Inject numerical leaderboard placement positions dynamically (1st, 2nd, 3rd...)
         for index, entry in enumerate(leaderboard_entries):
             entry["position"] = index + 1
-
         return jsonify({"leaderboard": leaderboard_entries}), 200
 
     except Exception as e:

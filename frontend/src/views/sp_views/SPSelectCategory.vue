@@ -4,6 +4,7 @@ import { initializeSocketConnection } from '../../services/socket'
 import { fetchCategories, getUserInfo } from '../../services/api.js'
 import { socketService } from '../../services/socket.js'
 import { useGameStore } from '../../stores/gameStore.js'
+import { logout } from '../../services/authService.js'
 import router from '../../router'
 
 const gameStore = useGameStore()
@@ -11,6 +12,7 @@ const gameStore = useGameStore()
 const pausedGame = ref(null)
 
 const loading = ref(true)
+const failed = ref(false)
 
 const categories = ref([])
 const selectedCategory = ref(null)
@@ -64,20 +66,25 @@ function forfeitGame() {
 }
 
 onMounted(async () => {
-  loading.value = true
-
   try {
     initializeSocketConnection()
+  } catch (error) {
+    alert('Session ran out. Please login again!')
+    logout()
+  }
 
+  loading.value = true
+  failed.value = false
+  try {
     const userData = await getUserInfo()
     if (userData.activeGame) {
       pausedGame.value = userData.activeGame
     }
-
     const categoryData = await fetchCategories()
     categories.value = categoryData.categories || []
   } catch (error) {
     console.error('Failed to initialise lobby', error)
+    failed.value = true
   } finally {
     loading.value = false
   }
@@ -86,10 +93,16 @@ onMounted(async () => {
 
 <template>
   <div class="lobby-container">
-    <div v-if="loading" class="loading-card">
+    <div v-if="loading" class="status-card loading-card">
       <div class="loading-spinner"></div>
       <h2>Loading...</h2>
       <p>Preparing your game.</p>
+    </div>
+
+    <div v-else-if="failed" class="failed-card loading-card">
+      <h2>Error</h2>
+      <p>Singleplayer information could not be fetched.</p>
+      <p>Please try reloading the page.</p>
     </div>
 
     <div v-if="pausedGame" class="resume-card gradient-card animate-in">

@@ -1,20 +1,35 @@
 <script setup>
-import { ref } from 'vue'
+import { ref, onMounted, onBeforeUnmount } from 'vue'
 import { useAuthStore } from '../stores/authStore.js'
 import { logout } from '../services/authService.js'
 
 const authStore = useAuthStore()
-const isOpen = ref(false) // Manages visibility of the dropdown
+const isOpen = ref(false)
+const menuRef = ref(null)
 
 function handleLogOut() {
   if (confirm('Are you sure you want to log out?')) {
     logout()
   }
 }
+
+function handleClickOutside(event) {
+  if (isOpen.value && menuRef.value && !menuRef.value.contains(event.target)) {
+    isOpen.value = false
+  }
+}
+
+onMounted(() => {
+  document.addEventListener('click', handleClickOutside)
+})
+
+onBeforeUnmount(() => {
+  document.removeEventListener('click', handleClickOutside)
+})
 </script>
 
 <template>
-  <div class="profile-menu-container">
+  <div ref="menuRef" class="profile-menu-container">
     <button @click="isOpen = !isOpen" class="profile-icon-btn">
       <svg
         xmlns="http://www.w3.org/2000/svg"

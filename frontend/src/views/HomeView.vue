@@ -3,6 +3,7 @@ import { computed, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 import { initializeSocketConnection } from '../services/socket'
 import { useAuthStore } from '../stores/authStore'
+import { logout } from '../services/authService.js'
 
 const authStore = useAuthStore()
 
@@ -33,7 +34,12 @@ function goToMP() {
 }
 
 onMounted(() => {
-  initializeSocketConnection()
+  try {
+    initializeSocketConnection()
+  } catch (error) {
+    alert('Session ran out. Please login again!')
+    logout()
+  }
 })
 </script>
 

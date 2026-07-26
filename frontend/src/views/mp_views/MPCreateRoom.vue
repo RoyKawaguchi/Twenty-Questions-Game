@@ -6,6 +6,7 @@ import { initializeSocketConnection, socketService } from '../../services/socket
 import { useAuthStore } from '../../stores/authStore.js'
 import { useGameStore } from '../../stores/gameStore.js'
 import { useRoomStore } from '../../stores/roomStore.js'
+import { logout } from '../../services/authService.js'
 
 // User input for joining an existing room
 const roomCode = ref('')
@@ -58,7 +59,12 @@ async function joinRoom() {
 }
 
 onMounted(async () => {
-  initializeSocketConnection()
+  try {
+    initializeSocketConnection()
+  } catch (error) {
+    alert('Session ran out. Please login again!')
+    logout()
+  }
 })
 </script>
 <template>
