@@ -5,7 +5,6 @@ import { initializeSocketConnection } from '../services/socket'
 import { getUserInfo } from '../services/api'
 import { useAuthStore } from '../stores/authStore'
 import MatchHistoryRow from '../components/MatchHistoryRow.vue'
-import { logout } from '../services/authService.js'
 
 const authStore = useAuthStore()
 
@@ -36,6 +35,11 @@ const rankNote = computed(() => {
   }
 
   return 'Rank updated daily based on global performance metric indices.'
+})
+
+const joinedDate = computed(() => {
+  const date = userInfo.value.joinedDate ? new Date(userInfo.value.joinedDate) : null
+  return date
 })
 
 onMounted(async () => {
@@ -77,6 +81,17 @@ onMounted(async () => {
             {{ userInfo.username }}
             <span v-if="userInfo.isGuest" class="guest-tag">Guest</span>
           </h3>
+          <div v-if="joinedDate" class="joined-date">
+            <span class="joined-icon">✦</span>
+            Joined
+            {{
+              joinedDate.toLocaleDateString(undefined, {
+                year: 'numeric',
+                month: 'long',
+                day: 'numeric',
+              })
+            }}
+          </div>
         </div>
 
         <div class="stats-grid">
@@ -211,6 +226,26 @@ onMounted(async () => {
   font-size: 2rem;
   font-weight: 700;
   color: #ffffff;
+}
+
+.joined-date {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  margin-top: 12px;
+  padding: 6px 12px;
+  border-radius: 999px;
+  background: rgba(161, 161, 170, 0.12);
+  border: 1px solid rgba(161, 161, 170, 0.25);
+  color: #d4d4d8;
+  font-size: 0.85rem;
+  font-weight: 500;
+  backdrop-filter: blur(6px);
+}
+
+.joined-icon {
+  color: #a78bfa;
+  font-size: 0.9rem;
 }
 
 .guest-tag {

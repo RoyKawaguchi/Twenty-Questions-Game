@@ -65,6 +65,16 @@ export async function initializeGuestSession(nickname) {
   return data
 }
 
+export async function deleteAccount() {
+  const response = await fetch(`${AUTH_BASE_URL}/delete_account`, {
+    method: 'GET',
+    headers: getAuthenticatedHeaders(),
+  })
+  if (!response.ok) throw new Error('Failed to delete account.')
+
+  return await response.json()
+}
+
 // =====================================================================
 // STATIC REFERENCE DATA
 // =====================================================================
@@ -112,6 +122,26 @@ export async function getLeaderboard() {
   if (!response.ok) {
     const errorData = await response.json().catch(() => ({}))
     throw new Error(errorData.error || 'Failed to retrieve user info from pipeline.')
+  }
+
+  return await response.json()
+}
+
+export async function setShowOnLeaderboard(show) {
+  const response = await fetch(`${AUTH_BASE_URL}/user_info`, {
+    method: 'PATCH',
+    headers: {
+      ...getAuthenticatedHeaders(),
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify({
+      showOnLeaderboard: show,
+    }),
+  })
+
+  if (!response.ok) {
+    const errorData = await response.json().catch(() => ({}))
+    throw new Error(errorData.error || 'Failed to update leaderboard visibility.')
   }
 
   return await response.json()

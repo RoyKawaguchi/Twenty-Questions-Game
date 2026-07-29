@@ -10,6 +10,7 @@ import FeedbackFormView from '../views/FeedbackFormView.vue'
 import ProfileView from '../views/ProfileView.vue'
 import LeaderboardView from '../views/LeaderboardView.vue'
 import GuideView from '../views/GuideView.vue'
+import AccountView from '../views/AccountView.vue'
 import NotFoundView from '../views/NotFoundView.vue'
 
 import SPGameView from '../views/sp_views/SPGame.vue'
@@ -68,6 +69,12 @@ const router = createRouter({
       path: '/guide',
       name: 'guide',
       component: GuideView,
+      meta: { requiresAuth: true },
+    },
+    {
+      path: '/account',
+      name: 'account',
+      component: AccountView,
       meta: { requiresAuth: true },
     },
     {

@@ -38,7 +38,7 @@ onMounted(() => {
     <main class="content-wrapper">
       <!-- PURPOSE & OVERVIEW SECTION -->
       <section class="info-card reveal purpose-card">
-        <h2>What is <span class="logo logo-medium">::twenty</span>?</h2>
+        <h2>What is ::twenty?</h2>
         <p>
           <strong>::twenty</strong> brings a modern, AI twist to the timeless guessing game of
           <strong>20 Questions</strong>. The goal is simple: narrow down the secret answer by asking
@@ -59,29 +59,26 @@ onMounted(() => {
           <div class="info-card reveal mode-card">
             <div class="card-header">
               <h3>
-                <span class="custom-link"
-                  ><RouterLink to="/singleplayer">Singleplayer</RouterLink></span
-                >
+                <span class="custom-link">
+                  <RouterLink to="/singleplayer">Singleplayer</RouterLink>
+                </span>
               </h3>
               <span class="mode-badge">1 player</span>
             </div>
+
             <ol class="step-list">
-              <li><strong>Pick a Category </strong> (Animals, Countries, ...)</li>
+              <li><strong>Pick a Category:</strong> Animals, Countries, and more.</li>
               <li>
-                <strong>Ask Yes/No questions:</strong> The AI will respond immediately with Yes or
-                No.
+                <strong>Ask Yes/No questions:</strong>
+                The AI responds immediately.
               </li>
               <li>
-                <strong>Make Your Guess:</strong> Lock in your final answer before hitting the
-                20-question limit!
+                <strong>Make Your Guess:</strong>
+                Lock in your answer before 20 questions.
               </li>
               <li>
-                <strong>Review AI Explanation:</strong> You can toggle "Show Analysis" to see the AI
-                justify its decision. If any AI decision does not sit right with you, please let us
-                know in our
-                <span class="custom-link"
-                  ><RouterLink to="/feedback">feedback form</RouterLink></span
-                >!
+                <strong>Review AI Explanation:</strong>
+                See why the AI made its decision.
               </li>
             </ol>
           </div>
@@ -90,28 +87,33 @@ onMounted(() => {
           <div class="info-card reveal mode-card">
             <div class="card-header">
               <h3>
-                <span class="custom-link"
-                  ><RouterLink to="/multiplayer/create">Multiplayer</RouterLink></span
-                >
+                <span class="custom-link">
+                  <RouterLink to="/multiplayer/create">Multiplayer</RouterLink>
+                </span>
               </h3>
               <span class="mode-badge multiplayer-badge">2-4 Players</span>
             </div>
+
             <ol class="step-list">
               <li>
-                <strong>Create a Room:</strong> Host a private lobby and generate a unique Room
-                Code.
+                <strong>Create a Room:</strong>
+                Host a private lobby.
               </li>
               <li>
-                <strong>Invite Friends:</strong> Share the code so your friends or foes can join
-                your room in real-time.
+                <strong>Invite Friends:</strong>
+                Share your room code.
               </li>
               <li>
-                <strong>Take Turns:</strong> Rotate turns live to ask questions or make guesses. The
-                first player to correctly guess the secret item wins!
+                <strong>Pick a Category:</strong>
+                Only the host can pick the category.
               </li>
               <li>
-                <strong>Start Guessing Early:</strong> There are no penalties for wrong guesses.
-                Don't hold back with wild guesses!
+                <strong>Take Turns:</strong>
+                One player can ask a question or make a guess in each turn.
+              </li>
+              <li>
+                <strong>First Correct Guesser Wins:</strong>
+                Wrong guesses have no penalty, so don't hold back!
               </li>
             </ol>
           </div>
@@ -127,7 +129,13 @@ onMounted(() => {
             <h3>Flipping the Script on Akinator</h3>
             <p class="card-text">
               <strong>::twenty</strong> takes heavy inspiration from the all-time classic,
-              <em>Akinator</em>, the virtual genie that gusses the character you are thinking of.
+              <span class="custom-link"
+                ><em
+                  ><a href="https://en.akinator.com/" target="_blank" rel="noopener noreferrer"
+                    >Akinator</a
+                  ></em
+                ></span
+              >, the virtual genie that guesses the character you are thinking of.
             </p>
             <p class="card-text">
               However, as fun as it is to see it guess the exact character, wouldn't you want to
@@ -150,8 +158,9 @@ onMounted(() => {
             </p>
             <p class="card-text">
               It replaces your endless doomscrolling with engaging
-              <strong><em>✨brain nourishment✨</em></strong> that sharpens your deductive skills,
-              organism taxonomy, and global geography in a modern, competitive environment.
+              <strong><em>brain nourishment</em></strong> that sharpens your deductive skills, on
+              top of knowledge of organism taxonomy, and global geography in a modern, competitive
+              environment.
             </p>
             <p class="card-text">
               Next time you are farting around on your phone, go on <strong>::twenty</strong>! Your
@@ -166,11 +175,11 @@ onMounted(() => {
         <div class="info-card reveal highlight-card">
           <h3>Why AI? Solving the Impossible</h3>
           <p class="card-text">
-            Why am I single-handedly destroying the planet by using AI? Thank you for asking.
+            Why am I using AI in a game even though it destroys the planet? Thank you for asking.
           </p>
           <p class="card-text">
-            Before modern LLMs, building a fluid 20-questions game was nearly impossible. Standard
-            decision trees and keyword algorithms fall into issues with inputs like:
+            Before modern LLMs, building a fluid 20-questions game was practically impossible.
+            Standard decision trees and keyword algorithms fall into issues with inputs like:
           </p>
           <ul class="step-list">
             <li>

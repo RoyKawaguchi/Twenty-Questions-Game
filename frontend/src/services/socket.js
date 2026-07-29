@@ -18,14 +18,11 @@ export let socket = null
  * Initializes the global Socket instance and sets up inbound broadcast channels.
  */
 export function initializeSocketConnection() {
-  const { authStore, roomStore } = getStores()
+  const { authStore, gameStore, roomStore } = getStores()
 
-  // Already healthy
   if (socket?.connected && roomStore.socketStatus === 'connected') {
     return
   }
-
-  // Prevent duplicate connection attempts
   if (roomStore.socketStatus === 'connecting') {
     return
   }

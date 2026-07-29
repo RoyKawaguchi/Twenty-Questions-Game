@@ -1,5 +1,6 @@
 <script setup>
 import { ref, onMounted, onBeforeUnmount } from 'vue'
+import router from '../router'
 import { useAuthStore } from '../stores/authStore.js'
 import { logout } from '../services/authService.js'
 
@@ -11,6 +12,11 @@ function handleLogOut() {
   if (confirm('Are you sure you want to log out?')) {
     logout()
   }
+}
+
+function handleViewAccount() {
+  isOpen.value = false
+  router.push('/account')
 }
 
 function handleClickOutside(event) {
@@ -56,6 +62,7 @@ onBeforeUnmount(() => {
         <p>{{ authStore.email || 'Guest account' }}</p>
       </div>
 
+      <button @click="handleViewAccount" class="btn-view-account">Account Settings</button>
       <button @click="handleLogOut" class="btn-danger">Sign Out</button>
     </div>
   </div>
@@ -104,6 +111,14 @@ onBeforeUnmount(() => {
 
 .dropdown-header p {
   color: var(--text-muted);
+}
+
+.btn-view-account {
+  background-color: #5a7fd0;
+  color: white;
+  width: 100%;
+  border-radius: 8px;
+  padding: 8px;
 }
 
 .btn-danger {

@@ -167,6 +167,27 @@ def guest_login():
     ), 200
 
 
+@auth_bp.route("/delete_account", methods=["GET"])
+@token_required
+def delete_account(current_user):
+    """Returns a comprehensive profile payload including profile analytics."""
+
+    user_id = current_user["user_id"]
+    is_guest = current_user["is_guest"]
+
+    if is_guest:
+        return jsonify({"error": "Guests cannot delete accounts."}), 500
+
+    result = get_db_collection().users.delete_one({"_id": user_id})
+
+    if result.deleted_count != 1:
+        return jsonify(
+            {"error": f"The account with ID {user_id} could not be found."}
+        ), 500
+
+    return jsonify({"username": current_user["username"]}), 200
+
+
 @auth_bp.route("/user_info", methods=["GET"])
 @token_required
 def get_user_info(current_user):
@@ -207,12 +228,16 @@ def get_user_info(current_user):
                     "historySingleplayer": [],
                     "historyMultiplayer": [],
                     "activeGame": active_game_payload,
+                    "showOnLeaderboard": False,
                 }
             ), 200
 
         user_doc = get_db_collection().users.find_one({"_id": user_id})
         if not user_doc:
             return jsonify({"error": "User account record not found."}), 404
+
+        created_at = user_doc["created_at"]
+        created_at_str = created_at.isoformat()
 
         history = user_doc.get("history_singleplayer", [])
 
@@ -245,6 +270,7 @@ def get_user_info(current_user):
         return jsonify(
             {
                 "username": user_doc["username"],
+                "joinedDate": created_at_str,
                 "xp": user_doc.get("xp", 0),
                 "isGuest": False,
                 "rank": rank_tier,
@@ -253,6 +279,7 @@ def get_user_info(current_user):
                 "historySingleplayer": processed_singleplayer,
                 "historyMultiplayer": processed_multiplayer,
                 "activeGame": active_game_payload,
+                "showOnLeaderboard": user_doc.get("show_on_leaderboard", True),
             }
         ), 200
 
@@ -261,6 +288,33 @@ def get_user_info(current_user):
         return jsonify(
             {"error": "Internal server error fetching user information."}
         ), 500
+
+
+@auth_bp.route("/user_info", methods=["PATCH"])
+@token_required
+def update_user_info(current_user):
+    data = request.get_json()
+
+    if not data:
+        return jsonify({"error": "No data provided"}), 400
+
+    update_fields = {}
+
+    if "showOnLeaderboard" in data:
+        update_fields["show_on_leaderboard"] = bool(data["showOnLeaderboard"])
+
+    if not update_fields:
+        return jsonify({"error": "No valid fields to update"}), 400
+
+    result = get_db_collection().users.update_one(
+        {"_id": current_user["user_id"]},
+        {"$set": update_fields},
+    )
+
+    if result.matched_count == 0:
+        return jsonify({"error": "User does not exist in server."}), 404
+
+    return jsonify({"message": "Profile updated successfully."}), 200
 
 
 @auth_bp.route("/leaderboard", methods=["GET"])
@@ -277,8 +331,8 @@ def get_leaderboard(current_user):
             rating, rank_tier, _ = calculate_singleplayer_analytics(history)
             xp = user_doc.get("xp")
 
-            # Only include competitive players who have unlocked a valid rank tier (min 3 games)
-            if rank_tier != "-":
+            # Only include ranked players and public players
+            if rank_tier != "-" and user_doc.get("show_on_leaderboard", True):
                 leaderboard_entries.append(
                     {
                         "username": user_doc["username"],
