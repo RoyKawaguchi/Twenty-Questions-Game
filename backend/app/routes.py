@@ -1,15 +1,18 @@
-import uuid
 import datetime
-from flask import Blueprint, jsonify, request, current_app
-import jwt
-import bcrypt
+import uuid
 from functools import wraps
+
+import bcrypt
+import jwt
+from flask import Blueprint, current_app, jsonify, request
+
 from app.database import db_wrapper
-from app.models import GameStage, GameMode
+from app.models import GameMode, GameStage
 from app.services.game_engine import calculate_singleplayer_analytics
 
 auth_bp = Blueprint("auth", __name__, url_prefix="/api/auth")
 game_bp = Blueprint("game", __name__, url_prefix="/api/game")
+
 
 def get_db_collection():
     """Helper to ensure we safely access the collection only after db is initialized."""
@@ -17,13 +20,15 @@ def get_db_collection():
         raise RuntimeError("Database connection has not been initialized yet.")
     return db_wrapper.db
 
+
 def generate_token(user_id: str, username: str, is_guest: bool = False) -> str:
     """Mints a 24-hour self-contained JWT token for the authenticated user/guest."""
     payload = {
         "user_id": user_id,
         "username": username,
         "is_guest": is_guest,
-        "exp": datetime.datetime.now(datetime.timezone.utc) + datetime.timedelta(days=1)
+        "exp": datetime.datetime.now(datetime.timezone.utc)
+        + datetime.timedelta(days=1),
     }
     return jwt.encode(payload, current_app.config["JWT_SECRET_KEY"], algorithm="HS256")
 
@@ -33,20 +38,24 @@ def token_required(f):
     def decorated(*args, **kwargs):
         token = None
 
-        if 'Authorization' in request.headers:
-            auth_header = request.headers['Authorization']
+        if "Authorization" in request.headers:
+            auth_header = request.headers["Authorization"]
             if auth_header.startswith("Bearer "):
                 token = auth_header.split(" ")[1]
 
         if not token:
-            return jsonify({"error": "Access denied. Authentication token missing."}), 401
+            return jsonify(
+                {"error": "Access denied. Authentication token missing."}
+            ), 401
 
         try:
-            payload = jwt.decode(token, current_app.config["JWT_SECRET_KEY"], algorithms=["HS256"])
+            payload = jwt.decode(
+                token, current_app.config["JWT_SECRET_KEY"], algorithms=["HS256"]
+            )
             current_user = {
                 "user_id": payload["user_id"],
                 "username": payload["username"],
-                "is_guest": payload["is_guest"]
+                "is_guest": payload["is_guest"],
             }
         except jwt.ExpiredSignatureError:
             return jsonify({"error": "Session expired. Please sign in again."}), 401
@@ -57,24 +66,33 @@ def token_required(f):
 
     return decorated
 
-@auth_bp.route('/signup', methods=['POST'])
+
+@auth_bp.route("/signup", methods=["POST"])
 def signup():
     """Registers a new persistent user account into MongoDB Atlas."""
     data = request.get_json() or {}
-    email = data.get('email', '').strip()
-    username = data.get('username', '').strip()
-    password = data.get('password', '')
+    email = data.get("email", "").strip()
+    username = data.get("username", "").strip()
+    password = data.get("password", "")
 
     if not email or not username or not password:
-        return jsonify({"error": "Missing required fields: email, username, and password"}), 400
+        return jsonify(
+            {"error": "Missing required fields: email, username, and password"}
+        ), 400
 
     users_db = get_db_collection().users
 
-    existing_user = users_db.find_one({"$or": [{"email": email}, {"username": username}]})
+    existing_user = users_db.find_one(
+        {"$or": [{"email": email}, {"username": username}]}
+    )
     if existing_user:
-        return jsonify({"error": "A user with this email or username already exists"}), 400
+        return jsonify(
+            {"error": "A user with this email or username already exists"}
+        ), 400
 
-    hashed_password = bcrypt.hashpw(password.encode('utf-8'), bcrypt.gensalt()).decode('utf-8')
+    hashed_password = bcrypt.hashpw(password.encode("utf-8"), bcrypt.gensalt()).decode(
+        "utf-8"
+    )
 
     user_doc = {
         "_id": str(uuid.uuid4()),
@@ -84,25 +102,23 @@ def signup():
         "created_at": datetime.datetime.now(datetime.timezone.utc),
         "history_singleplayer": [],
         "history_multiplayer": [],
-        "xp": 0
+        "xp": 0,
     }
 
     users_db.insert_one(user_doc)
 
     token = generate_token(user_doc["_id"], username, is_guest=False)
-    return jsonify({
-        "token": token,
-        "username": username,
-        "is_guest": False,
-        "email": email
-    }), 201
+    return jsonify(
+        {"token": token, "username": username, "is_guest": False, "email": email}
+    ), 201
 
-@auth_bp.route('/login', methods=['POST'])
+
+@auth_bp.route("/login", methods=["POST"])
 def login():
     """Authenticates an existing user profile against stored hashes."""
     data = request.get_json() or {}
-    identity = data.get('identity', '').strip()  
-    password = data.get('password', '')
+    identity = data.get("identity", "").strip()
+    password = data.get("password", "")
 
     if not identity or not password:
         return jsonify({"error": "Missing identity or password fields"}), 400
@@ -113,23 +129,29 @@ def login():
     if not user_doc:
         return jsonify({"error": "Invalid username, email, or password"}), 401
 
-    if not bcrypt.checkpw(password.encode('utf-8'), user_doc['password_hash'].encode('utf-8')):
+    if not bcrypt.checkpw(
+        password.encode("utf-8"), user_doc["password_hash"].encode("utf-8")
+    ):
         return jsonify({"error": "Invalid username, email, or password"}), 401
 
     token = generate_token(user_doc["_id"], user_doc["username"], is_guest=False)
-    return jsonify({
-        "token": token,
-        "username": user_doc["username"],
-        "is_guest": False,
-        "email": user_doc.get("email", "")
-    }), 200
+    return jsonify(
+        {
+            "token": token,
+            "username": user_doc["username"],
+            "is_guest": False,
+            "email": user_doc.get("email", ""),
+        }
+    ), 200
 
-@auth_bp.route('/guest', methods=['POST'])
+
+@auth_bp.route("/guest", methods=["POST"])
 def guest_login():
     """Creates a zero-commitment guest session with an optionally customized gaming tag."""
     import secrets
+
     data = request.get_json() or {}
-    chosen_name = data.get('nickname', '').strip()
+    chosen_name = data.get("nickname", "").strip()
 
     if not chosen_name:
         chosen_name = "Guest"
@@ -140,12 +162,10 @@ def guest_login():
     guest_id = str(uuid.uuid4())
     token = generate_token(guest_id, unique_guest_name, is_guest=True)
 
-    return jsonify({
-        "token": token,
-        "username": unique_guest_name,
-        "is_guest": True,
-        "email": ""
-    }), 200
+    return jsonify(
+        {"token": token, "username": unique_guest_name, "is_guest": True, "email": ""}
+    ), 200
+
 
 @auth_bp.route("/user_info", methods=["GET"])
 @token_required
@@ -154,13 +174,15 @@ def get_user_info(current_user):
     try:
         user_id = current_user["user_id"]
         is_guest = current_user["is_guest"]
-        
+
         # Active game lookup pipeline
-        active_match = get_db_collection().game_sessions.find_one({
-            "user_id": user_id,
-            "game_mode": GameMode.SINGLEPLAYER.value,
-            "game_stage": GameStage.PLAYING.value
-        })
+        active_match = get_db_collection().game_sessions.find_one(
+            {
+                "user_id": user_id,
+                "game_mode": GameMode.SINGLEPLAYER.value,
+                "game_stage": GameStage.PLAYING.value,
+            }
+        )
 
         active_game_payload = None
         if active_match:
@@ -170,62 +192,76 @@ def get_user_info(current_user):
                 "category": active_match["category"],
                 "turnsUsed": active_match["turns_used"],
                 "maxQuestions": active_match["max_questions"],
-                "chatHistory": active_match["chat_history"]
+                "chatHistory": active_match["chat_history"],
             }
 
         if is_guest:
-            return jsonify({
-                "username": current_user["username"],
-                "xp": 0,
-                "isGuest": True,
-                "rank": "-",
-                "rating": 0.0,
-                "winRate": 0,
-                "historySingleplayer": [],
-                "historyMultiplayer": [],
-                "activeGame": active_game_payload,
-            }), 200
+            return jsonify(
+                {
+                    "username": current_user["username"],
+                    "xp": 0,
+                    "isGuest": True,
+                    "rank": "-",
+                    "rating": 0.0,
+                    "winRate": 0,
+                    "historySingleplayer": [],
+                    "historyMultiplayer": [],
+                    "activeGame": active_game_payload,
+                }
+            ), 200
 
         user_doc = get_db_collection().users.find_one({"_id": user_id})
         if not user_doc:
             return jsonify({"error": "User account record not found."}), 404
 
         history = user_doc.get("history_singleplayer", [])
-        
+
         rating, rank_tier, win_rate = calculate_singleplayer_analytics(history)
 
         # Separate mapping tracking to preserve mutation isolation rules
         processed_singleplayer = []
-        for entry in sorted(history, key=lambda x: x.get("played_at") or datetime.datetime.min, reverse=True):
-            item = dict(entry)  
+        for entry in sorted(
+            history,
+            key=lambda x: x.get("played_at") or datetime.datetime.min,
+            reverse=True,
+        ):
+            item = dict(entry)
             if isinstance(item.get("played_at"), datetime.datetime):
                 item["played_at"] = item["played_at"].isoformat()
             processed_singleplayer.append(item)
 
         processed_multiplayer = []
         multi_history = user_doc.get("history_multiplayer", [])
-        for entry in sorted(multi_history, key=lambda x: x.get("played_at") or datetime.datetime.min, reverse=True):
+        for entry in sorted(
+            multi_history,
+            key=lambda x: x.get("played_at") or datetime.datetime.min,
+            reverse=True,
+        ):
             item = dict(entry)
             if isinstance(item.get("played_at"), datetime.datetime):
                 item["played_at"] = item["played_at"].isoformat()
             processed_multiplayer.append(item)
-        
 
-        return jsonify({
-            "username": user_doc["username"],
-            "xp": user_doc.get("xp", 0),
-            "isGuest": False,
-            "rank": rank_tier,
-            "rating": rating,
-            "winRate": win_rate,
-            "historySingleplayer": processed_singleplayer,
-            "historyMultiplayer": processed_multiplayer,
-            "activeGame": active_game_payload
-        }), 200
+        return jsonify(
+            {
+                "username": user_doc["username"],
+                "xp": user_doc.get("xp", 0),
+                "isGuest": False,
+                "rank": rank_tier,
+                "rating": rating,
+                "winRate": win_rate,
+                "historySingleplayer": processed_singleplayer,
+                "historyMultiplayer": processed_multiplayer,
+                "activeGame": active_game_payload,
+            }
+        ), 200
 
     except Exception as e:
         current_app.logger.error(f"Error fetching user metadata: {str(e)}")
-        return jsonify({"error": "Internal server error fetching user information."}), 500
+        return jsonify(
+            {"error": "Internal server error fetching user information."}
+        ), 500
+
 
 @auth_bp.route("/leaderboard", methods=["GET"])
 @token_required
@@ -243,12 +279,14 @@ def get_leaderboard(current_user):
 
             # Only include competitive players who have unlocked a valid rank tier (min 3 games)
             if rank_tier != "-":
-                leaderboard_entries.append({
-                    "username": user_doc["username"],
-                    "rating": rating,
-                    "rank": rank_tier,
-                    "xp": xp,
-                })
+                leaderboard_entries.append(
+                    {
+                        "username": user_doc["username"],
+                        "rating": rating,
+                        "rank": rank_tier,
+                        "xp": xp,
+                    }
+                )
 
         # Sort ascending: players with LOWER average turns are higher on the leaderboard
         leaderboard_entries.sort(key=lambda x: x["rating"], reverse=True)
@@ -259,8 +297,12 @@ def get_leaderboard(current_user):
         return jsonify({"leaderboard": leaderboard_entries}), 200
 
     except Exception as e:
-        current_app.logger.error(f"Error compiling global leaderboard metrics: {str(e)}")
-        return jsonify({"error": "Internal server error processing leaderboard records."}), 500
+        current_app.logger.error(
+            f"Error compiling global leaderboard metrics: {str(e)}"
+        )
+        return jsonify(
+            {"error": "Internal server error processing leaderboard records."}
+        ), 500
 
 
 @game_bp.route("/categories", methods=["GET"])
@@ -268,3 +310,17 @@ def get_leaderboard(current_user):
 def get_categories(current_user):
     categories_dict = current_app.config.get("GAME_CATEGORIES", {})
     return jsonify({"categories": list(categories_dict.keys())}), 200
+
+
+@game_bp.route("/all_answers", methods=["GET"])
+@token_required
+def get_all_answers(current_user):
+    print("all answers called!")
+    categories_dict = current_app.config.get("GAME_CATEGORIES", {})
+
+    categories = {
+        category_name: {"items": category_data.get("words", [])}
+        for category_name, category_data in categories_dict.items()
+    }
+
+    return jsonify({"categories": categories}), 200

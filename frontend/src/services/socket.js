@@ -18,11 +18,25 @@ export let socket = null
  * Initializes the global Socket instance and sets up inbound broadcast channels.
  */
 export function initializeSocketConnection() {
-  if (socket) return
+  const { authStore, roomStore } = getStores()
 
-  const { authStore, gameStore, roomStore } = getStores()
+  // Already healthy
+  if (socket?.connected && roomStore.socketStatus === 'connected') {
+    return
+  }
 
-  roomStore.socketStatus = 'connecting'
+  // Prevent duplicate connection attempts
+  if (roomStore.socketStatus === 'connecting') {
+    return
+  }
+
+  // Clean up stale socket if one exists but is not usable
+  if (socket) {
+    socket.disconnect()
+    socket = null
+  }
+
+  roomStore.updateSocketStatus('connecting')
 
   const targetUrl = import.meta.env.VITE_BACKEND_URL
 
@@ -34,25 +48,41 @@ export function initializeSocketConnection() {
   // ==========================================
   // 1. LIFECYCLE & SYSTEM EVENTS
   // ==========================================
+
   socket.on('connect', () => {
     roomStore.updateSocketStatus('connected')
-    console.log(`📡 Persistent Socket Channel Opened. Session ID: ${socket.id}`)
+
+    if (import.meta.env.DEV) {
+      console.log(`📡 Socket connected. Session ID: ${socket.id}`)
+    }
   })
 
   socket.on('connect_error', (err) => {
-    roomStore.updateSocketStatus('disconnected')
     console.warn('⚠️ Socket connection rejected:', err.message)
+
+    roomStore.updateSocketStatus('disconnected')
+
+    // Kill bad socket so future attempts can recreate it
+    socket.disconnect()
+    socket = null
+
     alert('Session expired. Please log in again.')
     logout()
   })
 
-  socket.on('disconnect', () => {
+  socket.on('disconnect', (reason) => {
     roomStore.updateSocketStatus('disconnected')
-    console.warn('⚠️ Socket connection lost.')
+
+    if (import.meta.env.DEV) {
+      console.warn(`⚠️ Socket disconnected: ${reason}`)
+    }
   })
 
   socket.on('socket_error', (data) => {
+    console.error('❌ Socket error:', data.message)
+
     roomStore.updateSocketStatus('disconnected')
+
     alert(`❌ Matching Exception: ${data.message}`)
   })
 

@@ -9,6 +9,7 @@ import HomeView from '../views/HomeView.vue'
 import FeedbackFormView from '../views/FeedbackFormView.vue'
 import ProfileView from '../views/ProfileView.vue'
 import LeaderboardView from '../views/LeaderboardView.vue'
+import GuideView from '../views/GuideView.vue'
 import NotFoundView from '../views/NotFoundView.vue'
 
 import SPGameView from '../views/sp_views/SPGame.vue'
@@ -64,6 +65,12 @@ const router = createRouter({
       meta: { requiresAuth: true },
     },
     {
+      path: '/guide',
+      name: 'guide',
+      component: GuideView,
+      meta: { requiresAuth: true },
+    },
+    {
       path: '/singleplayer',
       name: 'singleplayer',
       component: SPSelectCategoryView,
@@ -99,6 +106,13 @@ const router = createRouter({
       component: NotFoundView,
     },
   ],
+
+  scrollBehavior() {
+    return {
+      top: 0,
+      behavior: 'instant',
+    }
+  },
 })
 
 router.beforeEach((to) => {

@@ -55,6 +55,20 @@ watch(
   },
 )
 
+watch(
+  () => gameStore.gameStage,
+  (stage) => {
+    if (stage === 'GAME_OVER') {
+      nextTick(() => {
+        window.scrollTo({
+          top: document.documentElement.scrollHeight,
+          behavior: 'smooth',
+        })
+      })
+    }
+  },
+)
+
 function sendQuestion() {
   const question = questionInput.value.trim()
 

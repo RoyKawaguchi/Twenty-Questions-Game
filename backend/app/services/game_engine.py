@@ -1,14 +1,16 @@
-import uuid
-import random
 import datetime
 import logging
+import random
+import uuid
+
 from flask import current_app
 
 from app.database import db_wrapper
-from app.models import GameStage, GameMode, GameResult, EvaluationResponse
-from app.services.llm_service import evaluate_question, evaluate_guess
+from app.models import EvaluationResponse, GameMode, GameResult, GameStage
+from app.services.llm_service import evaluate_guess, evaluate_question
 
 logger = logging.getLogger(__name__)
+
 
 def get_db_collection():
     if db_wrapper.db is None:
@@ -23,8 +25,10 @@ def get_categories_config():
 def get_sp_max_questions():
     return current_app.config.get("DEFAULT_SP_MAX_QUESTIONS", 20)
 
+
 def get_mp_max_questions():
     return current_app.config.get("DEFAULT_MP_MAX_QUESTIONS", 20)
+
 
 def now_iso():
     return datetime.datetime.now(datetime.timezone.utc)
@@ -34,12 +38,15 @@ def now_iso():
 # SESSION CREATION
 # ==========================================
 
+
 def create_game_session(category, game_mode, user=None, room_code=None, players=None):
     """Builds and persists a new game_sessions document."""
     categories_dict = get_categories_config()
 
     if not category or category not in categories_dict:
-        raise ValueError(f"Invalid category. Choose from: {list(categories_dict.keys())}")
+        raise ValueError(
+            f"Invalid category. Choose from: {list(categories_dict.keys())}"
+        )
 
     category_data = categories_dict[category]
 
@@ -52,10 +59,14 @@ def create_game_session(category, game_mode, user=None, room_code=None, players=
         "exampleQuestion": categories_dict[category]["example_question"],
         "exampleAnswer": categories_dict[category]["example_answer"],
     }
-    
+
     # UNCOMMENT FOR TESTING
     print("secret_answer = ", secret_answer)
-    max_questions = get_sp_max_questions() if game_mode == GameMode.SINGLEPLAYER else get_mp_max_questions()
+    max_questions = (
+        get_sp_max_questions()
+        if game_mode == GameMode.SINGLEPLAYER
+        else get_mp_max_questions()
+    )
     game_id = str(uuid.uuid4())
 
     session_record = {
@@ -73,23 +84,31 @@ def create_game_session(category, game_mode, user=None, room_code=None, players=
         "created_at": now_iso(),
     }
 
-    if (game_mode == GameMode.SINGLEPLAYER or game_mode == GameMode.SINGLEPLAYER.value) and user is not None:
-        session_record.update({
-            "user_id": user["user_id"],
-            "username": user["username"],
-            "is_guest": user["is_guest"],
-        })
+    if (
+        game_mode == GameMode.SINGLEPLAYER or game_mode == GameMode.SINGLEPLAYER.value
+    ) and user is not None:
+        session_record.update(
+            {
+                "user_id": user["user_id"],
+                "username": user["username"],
+                "is_guest": user["is_guest"],
+            }
+        )
     else:
         players = players or []
         shuffled_players = players.copy()
         random.shuffle(shuffled_players)
 
-        session_record.update({
-            "room_code": room_code,
-            "players": players,
-            "current_turn_holder": shuffled_players[0]["username"] if players else None,
-            "winner_username": None,
-        })
+        session_record.update(
+            {
+                "room_code": room_code,
+                "players": players,
+                "current_turn_holder": shuffled_players[0]["username"]
+                if players
+                else None,
+                "winner_username": None,
+            }
+        )
 
     get_db_collection().game_sessions.insert_one(session_record)
     return session_record
@@ -99,10 +118,15 @@ def create_game_session(category, game_mode, user=None, room_code=None, players=
 # TURN PROCESSING
 # ==========================================
 
+
 def process_question(game, question_text):
     """Evaluates a question against the secret answer and returns the outcome."""
-    evaluation = evaluate_question(game["category"], game["secret_answer"], question_text)
-    llm_response = evaluation["response"]  # This is a string from our service layer ("Yes"/"No"/"Error")
+    evaluation = evaluate_question(
+        game["category"], game["secret_answer"], question_text
+    )
+    llm_response = evaluation[
+        "response"
+    ]  # This is a string from our service layer ("Yes"/"No"/"Error")
     llm_analysis = evaluation["analysis"]
 
     # Use direct string values for comparison to match structural models
@@ -113,7 +137,11 @@ def process_question(game, question_text):
         new_turns = game["turns_used"]
         new_error_count = game["error_count"] + 1
 
-    new_stage = GameStage.FINAL_GUESS.value if new_turns >= game["max_questions"] else GameStage.PLAYING.value
+    new_stage = (
+        GameStage.FINAL_GUESS.value
+        if new_turns >= game["max_questions"]
+        else GameStage.PLAYING.value
+    )
     response_text = f"{llm_response.value}."
 
     return {
@@ -125,12 +153,13 @@ def process_question(game, question_text):
         "is_correct": None,
     }
 
+
 def process_guess(game, guess_text):
     """Evaluates a guess against the secret answer and returns the outcome."""
     evaluation = evaluate_guess(guess_text, game["secret_answer"])
-    
+
     # Check directly against string value
-    is_correct = (evaluation["response"] == EvaluationResponse.YES.value)
+    is_correct = evaluation["response"] == EvaluationResponse.YES.value
     new_turns = game["turns_used"] + 1
 
     if is_correct:
@@ -138,7 +167,10 @@ def process_guess(game, guess_text):
         new_result = GameResult.WIN.value
         response_text = "Correct!"
     else:
-        if new_turns >= game["max_questions"] or game["game_stage"] == GameStage.FINAL_GUESS.value:
+        if (
+            new_turns >= game["max_questions"]
+            or game["game_stage"] == GameStage.FINAL_GUESS.value
+        ):
             new_stage = GameStage.GAME_OVER.value
             new_result = GameResult.LOSE.value
         else:
@@ -155,6 +187,7 @@ def process_guess(game, guess_text):
         "new_result": new_result,
         "is_correct": is_correct,
     }
+
 
 def apply_turn_update(game_id, turn_type, text, outcome, extra_set=None, author=None):
     """Persists a processed turn (question or guess) onto the game_sessions document."""
@@ -197,20 +230,15 @@ def add_chat_entry(game_id, chat_entry):
     """Appends a pre-built chat entry to the game's chat history."""
 
     get_db_collection().game_sessions.update_one(
-        {"_id": game_id},
-        {
-            "$push": {
-                "chat_history": chat_entry
-            }
-        }
+        {"_id": game_id}, {"$push": {"chat_history": chat_entry}}
     )
+
 
 def count_user_chat_entries(game_id, username):
     """Returns (question_count, guess_count) for the given user."""
 
     game_session = get_db_collection().game_sessions.find_one(
-        {"_id": game_id},
-        {"chat_history": 1}
+        {"_id": game_id}, {"chat_history": 1}
     )
 
     if not game_session:
@@ -231,10 +259,10 @@ def count_user_chat_entries(game_id, username):
     return (question_count, guess_count)
 
 
-
 # ==========================================
 # XP / HISTORY BOOKKEEPING
 # ==========================================
+
 
 def compute_xp(turns_used, won, num_players=1):
     winner_xp = max(21 - turns_used, 0)
@@ -245,7 +273,8 @@ def compute_xp(turns_used, won, num_players=1):
             return 0
         else:
             return winner_xp // num_players
-    
+
+
 def record_singleplayer_history(user_id, game_id, category, result, turns_used):
     xp_earned = compute_xp(turns_used, result == GameResult.WIN.value)
 
@@ -282,13 +311,26 @@ def record_singleplayer_history(user_id, game_id, category, result, turns_used):
     }
 
 
-def record_multiplayer_history(user_id, username, game_id, room_code, category, result, turns_used, opponents, is_guest=False):
-    xp_earned = 0 if is_guest else compute_xp(
-        turns_used,
-        result == GameResult.WIN.value,
-        num_players=len(opponents) + 1,
-    ) 
-
+def record_multiplayer_history(
+    user_id,
+    username,
+    game_id,
+    room_code,
+    category,
+    result,
+    turns_used,
+    opponents,
+    is_guest=False,
+):
+    xp_earned = (
+        0
+        if is_guest
+        else compute_xp(
+            turns_used,
+            result == GameResult.WIN.value,
+            num_players=len(opponents) + 1,
+        )
+    )
 
     if not is_guest:
         history_entry = {

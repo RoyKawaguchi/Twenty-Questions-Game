@@ -79,6 +79,16 @@ export async function fetchCategories() {
   return await response.json() // Returns { categories: [...] }
 }
 
+export async function fetchAllAnswers() {
+  const response = await fetch(`${GAME_BASE_URL}/all_answers`, {
+    method: 'GET',
+    headers: getAuthenticatedHeaders(),
+  })
+  if (!response.ok) throw new Error('Failed to load answers.')
+
+  return await response.json() // Returns { categories: { CategoryName: { items: [] } } }
+}
+
 export async function getUserInfo() {
   const response = await fetch(`${AUTH_BASE_URL}/user_info`, {
     method: 'GET',

@@ -166,7 +166,7 @@ const mpPlayerResults = computed(() => {
 
 <style scoped>
 .game-over-panel {
-  flex-shrink: 0;
+  /* flex-shrink: 0; */
   margin: 1.5rem 1rem;
   padding: 2rem;
   border-radius: 20px;
