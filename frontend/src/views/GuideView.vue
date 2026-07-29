@@ -86,7 +86,7 @@ onMounted(async () => {
       </section>
 
       <!-- How To Play -->
-      <section class="guide-section">
+      <!-- <section class="guide-section">
         <h3>How To Play</h3>
 
         <div class="info-card">
@@ -100,10 +100,10 @@ onMounted(async () => {
             <li>Instruction 5</li>
           </ol>
         </div>
-      </section>
+      </section> -->
 
       <!-- FAQ -->
-      <section class="guide-section">
+      <!-- <section class="guide-section">
         <h3>Frequently Asked Questions</h3>
 
         <div class="faq-card">
@@ -114,21 +114,12 @@ onMounted(async () => {
           <h4>Question 2</h4>
           <p>Answer 2</p>
         </div>
-      </section>
+      </section> -->
 
       <!-- Feedback -->
       <section class="guide-section feedback-section">
         <h3>Improve The Game</h3>
-
-        <div class="info-card">
-          <p>If you have any suggestions, please contact us!</p>
-          <p>
-            (e.g. Request for new categories, Some categories/answers being too difficult, some
-            cateogries being too easy, etc.)
-          </p>
-
-          <RouterLink to="/feedback" class="feedback-button"> Send Feedback </RouterLink>
-        </div>
+        <RouterLink to="/feedback" class="feedback-button"> Send Feedback / Request </RouterLink>
       </section>
     </div>
   </div>
