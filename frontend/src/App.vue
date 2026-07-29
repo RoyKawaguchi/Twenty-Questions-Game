@@ -59,22 +59,22 @@ onMounted(async () => {
             </span>
 
             <span class="disabled-wrapper">
-              <RouterLink to="/profile" :class="{ disabled: inGame }"> Profile </RouterLink>
+              <RouterLink to="/profile" :class="{ disabled: inGame }">Profile</RouterLink>
               <span v-if="inGame" class="tooltip"> Please complete or save your game first! </span>
             </span>
 
             <span class="disabled-wrapper">
-              <RouterLink to="/leaderboard" :class="{ disabled: inGame }"> Leaderboard </RouterLink>
+              <RouterLink to="/leaderboard" :class="{ disabled: inGame }">Leaderboard</RouterLink>
+              <span v-if="inGame" class="tooltip"> Please complete or save your game first! </span>
+            </span>
+
+            <span class="disabled-wrapper">
+              <RouterLink to="/guide" :class="{ disabled: inGame }">Guide</RouterLink>
               <span v-if="inGame" class="tooltip"> Please complete or save your game first! </span>
             </span>
           </template>
 
-          <RouterLink v-if="!loggedIn" to="/login"> Log In </RouterLink>
-
-          <span class="disabled-wrapper">
-            <RouterLink to="/guide" :class="{ disabled: inGame }"> Guide </RouterLink>
-            <span v-if="inGame" class="tooltip"> Please complete or save your game first! </span>
-          </span>
+          <RouterLink v-if="!loggedIn" to="/login">Log In</RouterLink>
         </div>
 
         <ProfileMenu v-if="loggedIn" />
