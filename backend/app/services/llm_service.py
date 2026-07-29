@@ -1,14 +1,18 @@
 import json
 import logging
-from openai import OpenAI
+
 from flask import current_app
+from openai import OpenAI
+
 from app.models import EvaluationResponse
 
 logger = logging.getLogger(__name__)
 
+
 def _get_client():
     """Instantiates a thread-safe OpenAI client context using validated configurations."""
     return OpenAI(api_key=current_app.config["OPENAI_API_KEY"])
+
 
 def evaluate_question(category: str, secret_answer: str, question: str) -> dict:
     """
@@ -18,7 +22,7 @@ def evaluate_question(category: str, secret_answer: str, question: str) -> dict:
     system_prompt = (
         "Instructions:\n"
         "You are playing a game of 20 Questions. Your job is to answer the user's question about a secret object accurately based on facts.\n\n"
-        "1. HIGHEST PRIORITY - Logical Evaluation: Before applying any other rule, identify whether the question contains multiple conditions or alternatives (e.g., 'A or B', 'either A or B', 'A, B, or C', 'France/Italy'). Evaluate each condition independently, then combine the results using the question's logical operator.\n"
+        "1. HIGHEST PRIORITY - Logical Evaluation: Before applying any other rule, identify whether the question contains multiple conditions or alternatives (e.g., 'A or B', 'either A or B', 'A, B, or C', 'France/Italy', 'Japan/China/South Korea'). Evaluate each condition independently, then combine the results using the question's logical operator.\n"
         "   - For OR questions: Answer 'yes' if ANY condition is true. Answer 'no' only if ALL conditions are false.\n"
         "   - For AND questions: Answer 'yes' only if ALL conditions are true. Answer 'no' if ANY condition is false.\n"
         "   - Never answer based on only the first condition or because one option is false.\n"
@@ -38,12 +42,14 @@ def evaluate_question(category: str, secret_answer: str, question: str) -> dict:
         "   - Apply the correct logical operator (OR or AND).\n"
         "   - Set 'response' to the final result of that logical evaluation, not to the truth of any individual condition.\n\n"
         "7. Format your output strictly as a single-line JSON object with exactly two keys:\n"
-        "{\"analysis\":\"Brief reasoning here\",\"response\":\"yes|no|error\"}"
+        '{"analysis":"Brief reasoning here","response":"yes|no|error"}'
     )
 
     user_content = f"Category: {category}\nSecret Object: {secret_answer}\nPlayer's Question: {question}"
 
-    for attempt in range(2): # 1 initial attempt + 1 transient fallback retry safety net
+    for attempt in range(
+        2
+    ):  # 1 initial attempt + 1 transient fallback retry safety net
         try:
             client = _get_client()
             completion = client.chat.completions.create(
@@ -52,8 +58,8 @@ def evaluate_question(category: str, secret_answer: str, question: str) -> dict:
                 temperature=0.0,
                 messages=[
                     {"role": "system", "content": system_prompt},
-                    {"role": "user", "content": user_content}
-                ]
+                    {"role": "user", "content": user_content},
+                ],
             )
 
             result = completion.choices[0].message.content
@@ -65,15 +71,21 @@ def evaluate_question(category: str, secret_answer: str, question: str) -> dict:
                 response_enum = EvaluationResponse(response_raw)
             except ValueError:
                 response_enum = EvaluationResponse.ERROR
-            
+
             return {
                 "analysis": parsed.get("analysis", "No analysis provided."),
-                "response": response_enum
+                "response": response_enum,
             }
         except Exception as e:
-            logger.warning(f"Transient issue during question evaluation (Attempt {attempt + 1}): {e}")
+            logger.warning(
+                f"Transient issue during question evaluation (Attempt {attempt + 1}): {e}"
+            )
             if attempt == 1:
-                return {"analysis": f"Failed evaluating question downstream: {str(e)}", "response": EvaluationResponse.ERROR}
+                return {
+                    "analysis": f"Failed evaluating question downstream: {str(e)}",
+                    "response": EvaluationResponse.ERROR,
+                }
+
 
 def evaluate_guess(guess: str, answer: str) -> dict:
     """
@@ -93,7 +105,7 @@ def evaluate_guess(guess: str, answer: str) -> dict:
         "Examples: 'food' does not match 'lasagna'; 'pasta' does not match 'lasagna'; 'dog' does not match 'beagle'; 'beagle' does not match 'dog'.\n\n"
         "6. When uncertain, prefer 'no' unless the two terms would commonly be treated as the same answer by ordinary people playing a guessing game.\n\n"
         "Format your output as a single-line JSON object with exactly two keys:\n"
-        "{\"analysis\":\"Brief reasoning here\",\"response\":\"yes|no\"}"
+        '{"analysis":"Brief reasoning here","response":"yes|no"}'
     )
 
     user_content = f"User Guess: '{guess}' | Target Secret Answer: '{answer}'"
@@ -107,15 +119,15 @@ def evaluate_guess(guess: str, answer: str) -> dict:
                 temperature=0.0,
                 messages=[
                     {"role": "system", "content": system_prompt},
-                    {"role": "user", "content": user_content}
-                ]
+                    {"role": "user", "content": user_content},
+                ],
             )
 
             result = completion.choices[0].message.content
             parsed = json.loads(result)
 
             response_raw = str(parsed.get("response", "")).strip().capitalize()
-            
+
             try:
                 response_enum = EvaluationResponse(response_raw)
             except ValueError:
@@ -123,9 +135,14 @@ def evaluate_guess(guess: str, answer: str) -> dict:
 
             return {
                 "analysis": parsed.get("analysis", "No analysis provided."),
-                "response": response_enum
+                "response": response_enum,
             }
         except Exception as e:
-            logger.warning(f"Transient issue during guess verification (Attempt {attempt + 1}): {e}")
+            logger.warning(
+                f"Transient issue during guess verification (Attempt {attempt + 1}): {e}"
+            )
             if attempt == 1:
-                return {"analysis": f"Failed evaluating guess downstream: {str(e)}", "response": EvaluationResponse.NO}
+                return {
+                    "analysis": f"Failed evaluating guess downstream: {str(e)}",
+                    "response": EvaluationResponse.NO,
+                }
