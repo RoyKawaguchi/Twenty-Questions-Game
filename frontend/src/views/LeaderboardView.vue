@@ -13,12 +13,7 @@ const failed = ref(false)
 const leaderboard = ref([])
 
 onMounted(async () => {
-  try {
-    initializeSocketConnection()
-  } catch (error) {
-    alert('Session ran out. Please login again!')
-    logout()
-  }
+  initializeSocketConnection()
 
   loading.value = true
   failed.value = false

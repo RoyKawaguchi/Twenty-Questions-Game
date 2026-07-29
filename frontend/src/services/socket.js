@@ -3,6 +3,7 @@ import { io } from 'socket.io-client'
 import { useAuthStore } from '../stores/authStore.js'
 import { useGameStore } from '../stores/gameStore.js'
 import { useRoomStore } from '../stores/roomStore.js'
+import { logout } from '../services/authService.js'
 function getStores() {
   return {
     authStore: useAuthStore(),
@@ -41,6 +42,8 @@ export function initializeSocketConnection() {
   socket.on('connect_error', (err) => {
     roomStore.updateSocketStatus('disconnected')
     console.warn('⚠️ Socket connection rejected:', err.message)
+    alert('Session expired. Please log in again.')
+    logout()
   })
 
   socket.on('disconnect', () => {
@@ -108,6 +111,7 @@ export function initializeSocketConnection() {
     gameStore.reset()
   })
 }
+
 export function disconnectSocket() {
   if (socket) {
     socket.disconnect()

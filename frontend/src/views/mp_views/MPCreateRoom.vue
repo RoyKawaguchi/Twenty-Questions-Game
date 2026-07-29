@@ -59,12 +59,7 @@ async function joinRoom() {
 }
 
 onMounted(async () => {
-  try {
-    initializeSocketConnection()
-  } catch (error) {
-    alert('Session ran out. Please login again!')
-    logout()
-  }
+  initializeSocketConnection()
 })
 </script>
 <template>

@@ -391,14 +391,14 @@ def calculate_singleplayer_analytics(history):
 
     # Rank thresholds
     if rating >= 95:
-        rank_tier = "Master"
+        rank_tier = "S"
     elif rating >= 85:
-        rank_tier = "Expert"
+        rank_tier = "A"
     elif rating >= 70:
-        rank_tier = "Skilled"
+        rank_tier = "B"
     elif rating >= 55:
-        rank_tier = "Apprentice"
+        rank_tier = "C"
     else:
-        rank_tier = "Rookie"
+        rank_tier = "D"
 
     return rating, rank_tier, win_rate

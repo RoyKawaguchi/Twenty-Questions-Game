@@ -66,12 +66,7 @@ function forfeitGame() {
 }
 
 onMounted(async () => {
-  try {
-    initializeSocketConnection()
-  } catch (error) {
-    alert('Session ran out. Please login again!')
-    logout()
-  }
+  initializeSocketConnection()
 
   loading.value = true
   failed.value = false
