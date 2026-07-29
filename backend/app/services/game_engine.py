@@ -380,7 +380,8 @@ def calculate_singleplayer_analytics(history):
     - Fewer than 3 games: Unranked
     - Otherwise determined from Rating
     """
-    RECENT_WEIGHTS = [5, 4, 3, 2, 1]
+
+    RECENT_WEIGHTS = [4, 3, 2, 2, 1]
 
     total_games = len(history)
 
@@ -406,38 +407,52 @@ def calculate_singleplayer_analytics(history):
         weight = RECENT_WEIGHTS[i]
 
         if game.get("result") == "WIN":
-            turns = max(1, min(20, game["turns_used"]))
+            turns = max(1, min(20, game.get("turns_used", 20)))
 
-            # 1 turn = 100
-            # 20 turns = 45 (instead of 5)
-            game_score = 100 - ((turns - 1) / 19) * 55
+            # Lenient curve:
+            # 1 turn  -> 100
+            # 5 turns -> ~95
+            # 8 turns -> ~89
+            # 10 turns -> ~85
+            # 20 turns -> 55
+            normalized = (turns - 1) / 19
+            game_score = 100 - (normalized**1.35) * 45
+
         else:
-            # Losses still hurt, but don't destroy rating
-            game_score = 30
+            # Forgiving loss score
+            game_score = 40
 
         weighted_score += game_score * weight
         total_weight += weight
 
     rating = round(weighted_score / total_weight)
 
-    # Smaller early-sample penalty
+    # Small sample uncertainty
     if total_games == 3:
-        rating = round(rating * 0.97)
+        rating = round(rating * 0.96)
     elif total_games == 4:
-        rating = round(rating * 0.99)
+        rating = round(rating * 0.98)
 
     rating = max(0, min(100, rating))
 
-    # Keep the same rank system
+    # Rank system
     if rating >= 95:
         rank_tier = "S"
+    elif rating >= 90:
+        rank_tier = "A+"
     elif rating >= 85:
         rank_tier = "A"
+    elif rating >= 80:
+        rank_tier = "A-"
+    elif rating >= 75:
+        rank_tier = "B+"
     elif rating >= 70:
         rank_tier = "B"
-    elif rating >= 55:
-        rank_tier = "C"
+    elif rating >= 65:
+        rank_tier = "B-"
+    elif rating >= 60:
+        rank_tier = "C+"
     else:
-        rank_tier = "D"
+        rank_tier = "C"
 
     return rating, rank_tier, win_rate
