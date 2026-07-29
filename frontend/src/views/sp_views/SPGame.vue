@@ -189,8 +189,11 @@ async function focusQuestionInput() {
       :isLoading="isLoadingGuess || isLoadingQuestion"
     />
 
-    <div class="chat-inputs" v-if="gameStore.gameStage === 'PLAYING'">
-      <div class="input-row">
+    <div
+      class="chat-inputs"
+      v-if="gameStore.gameStage === 'PLAYING' || gameStore.gameStage === 'FINAL_GUESS'"
+    >
+      <div class="input-row" v-if="gameStore.gameStage === 'PLAYING'">
         <input
           ref="questionInputRef"
           v-model="questionInput"
@@ -206,7 +209,11 @@ async function focusQuestionInput() {
         <input
           v-model="guessInput"
           :disabled="isLoadingGuess"
-          :placeholder="`or make a guess (e.g. ${gameStore.categoryInfo.exampleAnswer})`"
+          :placeholder="
+            gameStore.gameStage === 'FINAL_GUESS'
+              ? 'Enter your final guess'
+              : `or make a guess (e.g. ${gameStore.categoryInfo.exampleAnswer})`
+          "
           @keyup.enter="sendGuess"
         />
 

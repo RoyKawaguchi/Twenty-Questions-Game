@@ -1,5 +1,6 @@
 {
-  "max_questions": 20,
+  "sp_max_questions": 20,
+  "mp_max_questions": 30,
   "categories": {
     "Animals": {
       "category_singular": "an animal",

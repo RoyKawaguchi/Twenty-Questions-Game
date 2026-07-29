@@ -35,7 +35,8 @@ def create_app():
     with open(json_config_path, "r", encoding='utf-8') as f:
         game_data = json.load(f)
         app.config["GAME_CATEGORIES"] = game_data["categories"]
-        app.config["DEFAULT_MAX_QUESTIONS"] = game_data.get("max_questions", 20)
+        app.config["DEFAULT_SP_MAX_QUESTIONS"] = game_data.get("sp_max_questions", 20)
+        app.config["DEFAULT_MP_MAX_QUESTIONS"] = game_data.get("mp_max_questions", 20)
 
     frontend_url = os.getenv("FRONTEND_URL", "*")
 

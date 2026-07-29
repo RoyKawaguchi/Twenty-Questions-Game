@@ -20,9 +20,11 @@ def get_categories_config():
     return current_app.config.get("GAME_CATEGORIES", {})
 
 
-def get_max_questions():
-    return current_app.config.get("DEFAULT_MAX_QUESTIONS", 20)
+def get_sp_max_questions():
+    return current_app.config.get("DEFAULT_SP_MAX_QUESTIONS", 20)
 
+def get_mp_max_questions():
+    return current_app.config.get("DEFAULT_MP_MAX_QUESTIONS", 20)
 
 def now_iso():
     return datetime.datetime.now(datetime.timezone.utc)
@@ -53,7 +55,7 @@ def create_game_session(category, game_mode, user=None, room_code=None, players=
     
     # UNCOMMENT FOR TESTING
     print("secret_answer = ", secret_answer)
-    max_questions = get_max_questions()
+    max_questions = get_sp_max_questions() if game_mode == GameMode.SINGLEPLAYER else get_mp_max_questions()
     game_id = str(uuid.uuid4())
 
     session_record = {

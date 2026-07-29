@@ -170,9 +170,12 @@ async function focusQuestionInput() {
     <ChatWindow :messages="chatMessages" :show-analysis="showAnalysis" :is-loading="isLoading" />
 
     <!-- Turn-based Inputs -->
-    <div v-if="gameStore.gameStage === 'PLAYING'" class="chat-inputs">
+    <div
+      v-if="gameStore.gameStage === 'PLAYING' || gameStore.gameStage === 'FINAL_GUESS'"
+      class="chat-inputs"
+    >
       <!-- Ask Question Row -->
-      <div class="input-row">
+      <div class="input-row" v-if="gameStore.gameStage === 'PLAYING'">
         <input
           ref="questionInputRef"
           v-model="questionInput"
@@ -195,9 +198,13 @@ async function focusQuestionInput() {
           v-model="guessInput"
           :disabled="!isMyTurn || isLoading"
           :placeholder="
-            isMyTurn
-              ? `Or make a guess (e.g. ${gameStore.categoryInfo.exampleAnswer})`
-              : `Waiting for @${activePlayerName} to guess...`
+            gameStore.gameStage === 'FINAL_GUESS'
+              ? isMyTurn
+                ? 'Enter your final guess'
+                : `Waiting for @${activePlayerName} to make the final guess...`
+              : isMyTurn
+                ? `Or make a guess (e.g. ${gameStore.categoryInfo.exampleAnswer})`
+                : `Waiting for @${activePlayerName} to guess...`
           "
           @keyup.enter="sendGuess"
         />
