@@ -371,17 +371,14 @@ def calculate_singleplayer_analytics(history):
 
     Rating:
     - 0-100 scale
-    - Based on the last 5 games (or fewer if fewer exist)
-    - Fast wins earn higher scores
-    - Losses score 0
-    - More recent games are weighted more heavily
+    - Based on the last 5 games
+    - Faster wins score higher
+    - Losses reduce score but do not completely destroy it
+    - Recent games weighted more heavily
 
     Rank:
     - Fewer than 3 games: Unranked
     - Otherwise determined from Rating
-
-    Returns:
-        rating, rank_tier, win_rate
     """
     RECENT_WEIGHTS = [5, 4, 3, 2, 1]
 
@@ -390,11 +387,9 @@ def calculate_singleplayer_analytics(history):
     if total_games == 0:
         return 0, "-", 0
 
-    # Lifetime win rate
     total_wins = sum(game.get("result") == "WIN" for game in history)
     win_rate = round((total_wins / total_games) * 100)
 
-    # Most recent first
     recent_games = sorted(
         history,
         key=lambda x: x.get("played_at") or datetime.datetime.min,
@@ -413,27 +408,27 @@ def calculate_singleplayer_analytics(history):
         if game.get("result") == "WIN":
             turns = max(1, min(20, game["turns_used"]))
 
-            # 1 turn -> 100
-            # 20 turns -> 5
-            game_score = 100 - ((turns - 1) / (20 - 1)) * 95
+            # 1 turn = 100
+            # 20 turns = 45 (instead of 5)
+            game_score = 100 - ((turns - 1) / 19) * 55
         else:
-            # Any loss
-            game_score = 0
+            # Losses still hurt, but don't destroy rating
+            game_score = 30
 
         weighted_score += game_score * weight
         total_weight += weight
 
     rating = round(weighted_score / total_weight)
 
-    # Small experience adjustment
+    # Smaller early-sample penalty
     if total_games == 3:
-        rating = round(rating * 0.90)
+        rating = round(rating * 0.97)
     elif total_games == 4:
-        rating = round(rating * 0.95)
+        rating = round(rating * 0.99)
 
     rating = max(0, min(100, rating))
 
-    # Rank thresholds
+    # Keep the same rank system
     if rating >= 95:
         rank_tier = "S"
     elif rating >= 85:
